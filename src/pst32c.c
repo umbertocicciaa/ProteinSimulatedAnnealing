@@ -282,6 +282,45 @@ void pst(params* input){
 	// --------------------------------------------------------------
 	// Codificare qui l'algoritmo di Predizione struttura terziaria
 	// --------------------------------------------------------------
+	int n;
+	type T,t,e;
+	n = input->N;
+	T = input->to;
+	e = energy di input->seq, input->phi, input->psi ;
+	t=0;
+
+	while(T <= 0){
+		int i;
+		type deltaE;
+		i = posizione casuale tra 0 e n;
+
+		type phi, psy; 
+		phi = valore reale tra - pi greco e pi greco;
+		psi = valore reale tra - pi greco e pi greco;
+
+		input->phi[i] =  input->phi[i] + phi;
+		input->psi[i] = input->psi[i] + psi;
+
+		deltaE = energy di input->seq, input->phi, input->psi - e;
+		if(deltaE <= 0){
+			e = energy di input->seq, input->phi, input->psi; 
+		}else{
+			type p,r;
+			p = calcolo probabilita accettazione;
+			r = numero random tra 0 e 1;
+
+			if(r <= P){
+				e = energy di input->seq, input->phi, input->psi; 
+			}else{
+				input->phi[i] =  input->phi[i] - phi;
+				input->psi[i] = input->psi[i] - psi; // O + ?
+			}
+		}
+
+		t = t + 1;
+		T = input->to - radice di alpha x t
+	}
+
 }
 
 int main(int argc, char** argv) {
