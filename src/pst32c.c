@@ -46,9 +46,11 @@
 #include <time.h>
 #include <libgen.h>
 #include <xmmintrin.h>
+#include <malloc.h>
 
 #define	type		float
 #define	MATRIX		type*
+#define REAL_MATRIX type**
 #define	VECTOR		type*
 
 #define random() (((type) rand())/RAND_MAX)
@@ -90,17 +92,37 @@ typedef struct {
 * 
 */
 
-void* get_block(int size, int elements) { 
-	return _mm_malloc(elements*size,16); 
+void* get_block(int size, int elements) {  
+    if (size <= 0 || elements <= 0 || size > SIZE_MAX / elements) {
+        return NULL; // Dimensioni non valide o overflow
+    }
+    return _mm_malloc(elements * size, 16); 
 }
 
 void free_block(void* p) { 
 	_mm_free(p);
 }
 
+REAL_MATRIX alloc_real_matrix(int n, int m){
+	type** mat; 
+	int i, k;
+
+	mat= (type**) _mm_malloc(n*sizeof(type*),16);
+	
+	for(i=0; i<n; i++){
+		mat[i]=(type*) _mm_malloc(m*sizeof(type),16);
+		
+		if(mat[i]==NULL){
+			for(k=0; k<i; k++){ free(mat[k]); }
+		}
+	}
+	return mat;
+}
+
 MATRIX alloc_matrix(int rows, int cols) {
 	return (MATRIX) get_block(sizeof(type),rows*cols);
 }
+
 
 int* alloc_int_matrix(int rows, int cols) {
 	return (int*) get_block(sizeof(int),rows*cols);
@@ -113,6 +135,8 @@ char* alloc_char_matrix(int rows, int cols) {
 void dealloc_matrix(void* mat) {
 	free_block(mat);
 }
+
+
 
 /*
 * 
@@ -278,50 +302,341 @@ void gen_rnd_mat(VECTOR v, int N){
 // PROCEDURE ASSEMBLY
 extern void prova(params* input);
 
+// Funzioni per approssimazioni polinomiali di coseno e seno
+type approx_cos(type x) {
+    type x2 = x * x;
+    return 1 - (x2 / 2.0f) + (x2 * x2 / 24.0f) - (x2 * x2 * x2 / 720.0f);
+}
+
+type approx_sin(type x) {
+    type x2 = x * x;
+    return x - (x * x2 / 6.0f) + (x * x2 * x2 / 120.0f) - (x * x2 * x2 * x2 / 5040.0f);
+}
+
+void normalize_axis(VECTOR axis) {
+    // Calcola la norma del vettore axis (prodotto scalare di axis con se stesso)
+    type norm = axis[0] * axis[0] + axis[1] * axis[1] + axis[2] * axis[2];
+    norm = sqrtf(norm); // Calcolo della radice quadrata
+    // Normalizza il vettore axis
+    axis[0] /= norm;
+    axis[1] /= norm;
+    axis[2] /= norm;
+}
+
+void mul_matrix(type* vector, type** matrix, type* result, int n){
+	// Inizializza il risultato a zero
+    for (int i = 0; i < n; i++) {
+        result[i] = 0.0f;
+    }
+    
+    // Esegui il prodotto tra il vettore e la matrice
+    for (int i = 0; i < n; i++) { // Itera sulle colonne della matrice
+        for (int j = 0; j < n; j++) { // Itera sulle righe della matrice
+            result[i] += vector[j] * matrix[j][i];
+        }
+    }
+}
+
+
+
+void rotation(VECTOR axis, type theta, REAL_MATRIX rotation_matrix) {
+    // Normalizzazione dell'asse
+    normalize_axis(axis);
+
+    // Calcolo di a, b, c, d
+    type a = approx_cos(theta / 2.0f);
+    type b = -axis[0] * approx_sin(theta / 2.0f);
+    type c = -axis[1] * approx_sin(theta / 2.0f);
+    type d = -axis[2] * approx_sin(theta / 2.0f);
+
+    // Calcolo dei termini della matrice di rotazione
+    rotation_matrix[0][0] = a * a + b * b - c * c - d * d;
+    rotation_matrix[0][1] = 2 * (b * c + a * d);
+    rotation_matrix[0][2] = 2 * (b * d - a * c);
+
+    rotation_matrix[1][0] = 2 * (b * c - a * d);
+    rotation_matrix[1][1] = a * a + c * c - b * b - d * d;
+    rotation_matrix[1][2] = 2 * (c * d + a * b);
+
+    rotation_matrix[2][0] = 2 * (b * d + a * c);
+    rotation_matrix[2][1] = 2 * (c * d - a * b);
+    rotation_matrix[2][2] = a * a + d * d - b * b - c * c;
+}
+
+REAL_MATRIX backbone(char* s, VECTOR phi, VECTOR psi){
+	int n = strlen(s); 
+
+	//distanze standard nel backbone
+	type r_CA_N = 1.46;
+	type r_CA_C = 1.52;
+	type r_C_N = 1.33;
+
+	//angoli standard in radianti nel backbone
+	type theta_CA_C_N = 2.028;
+	type theta_C_N_CA = 2.124;
+	type theta_N_CA_C = 1.940;
+
+	//crea la matrice coords 
+	REAL_MATRIX coords = alloc_real_matrix(n,9);
+	//MATRIX coords = alloc_matrix(n*3, 3);
+	coords[0][0] = 0;	//x di N nel primo amminoacido
+	coords[0][1] = 0;	//y di N nel primo amminoacido
+	coords[0][2] = 0;	//z di N nel primo amminoacido 
+	
+	coords[0][3] = r_CA_N; //x di Ca nel primo amminoacido
+	coords[0][4] = 0; //y di Ca nel primo amminoacido
+	coords[0][5] = 0; //z di Ca nel primo amminoacido
+	
+	int i;
+	for(i=0; i<n; i++){
+		if(i>0){
+			VECTOR v1 = alloc_matrix(1,3);
+
+			int j;
+			for(j=0; j<3; j++){
+				v1[j] = coords[i-1][j+6] - coords[i-1][j+3]; //differenza C-Ca
+			}
+			normalize_axis(v1);
+			REAL_MATRIX rot_v1 = alloc_real_matrix(3,3);
+			rotation(v1, theta_C_N_CA, rot_v1);
+			
+			type v_v1[3] = {0.0, r_C_N, 0.0};
+
+			VECTOR newv_v1 = alloc_matrix(1,3);
+			mul_matrix(v_v1, rot_v1, newv_v1, 3);
+
+			for(j=0; j<3; j++){
+				coords[i][j] = coords[i-1][j+6] + newv_v1[j]; //posiziona N usando newv e C dell'amminoacido precedente
+			}
+
+			//POSIZIONA Ca USANDO PHI
+			VECTOR v2 = alloc_matrix(1,3);
+
+			for(j=0; j<3;j++){
+				v2[j] = coords[i][j] - coords[i-1][j+6];
+			}
+			normalize_axis(v2);
+			REAL_MATRIX rot_v2 = alloc_real_matrix(3,3);
+			rotation(v2, phi[i], rot_v2);
+			type v_v2[3] = {0, r_CA_N, 0};
+			VECTOR newv_v2 = alloc_matrix(1,3);
+			mul_matrix(v_v2, rot_v2, newv_v2, 3);
+
+			for(j=0; j<3;j++){
+				coords[i][j+3] = coords[i][j] + newv_v2[j]; //posiziona Ca usando N dell'amminoacido corrente
+			}
+		}
+
+		//posiziona C usando psi
+		VECTOR v3 = alloc_matrix(1,3);
+
+		int j;
+		for(j=0; j<3; j++){
+			v3[j] = coords[i][j+3] - coords[i][j];
+			// coords[0][6] = coords[0][3] - coords[0][0];
+			// coords[0][7] = coords[0][4] - coords[0][1];
+			// coords[0][8] = coords[0][5] - coords[0][2];
+		}
+
+		normalize_axis(v3);
+		
+		REAL_MATRIX rot = alloc_real_matrix(3,3);
+		rotation(v3, psi[i],rot);
+		
+		type v[3] = {0, r_CA_C, 0};
+		VECTOR newv = alloc_matrix(1,3);
+		mul_matrix(v, rot, newv, 3);
+
+		for(j=0; j<3; j++){
+			coords[i][j+6] = newv[j] + coords[i][j+3]; //aggiorna C
+		}
+	}
+	return coords;
+}
+
+
+type rama_energy(VECTOR phi, VECTOR psi){
+	int n = 26;
+	type alpha_phi = -57.8;
+	type alpha_psi = -47.0;
+	type beta_phi = -119.0;
+	type beta_psi = 113.0;
+	type energy = 0;
+
+	int i;
+	for(i=0; i<n; i++){
+		type alpha_dist = sqrt(pow(phi[i]-alpha_phi,2)+pow(psi[i]-alpha_psi,2));
+		type beta_dist = sqrt(pow(phi[i]-beta_phi,2)+pow(psi[i]-beta_psi,2));
+		type min;
+		if(alpha_dist<beta_dist) min = alpha_dist;
+		else min = beta_dist;
+		energy = energy + 0.5 * min;
+	}
+	return energy;
+}
+
+type euclidean_dist(REAL_MATRIX coords, int i, int j){
+	type x_i = coords[i][3];
+	type y_i = coords[i][4];
+	type z_i = coords[i][5];
+
+	type x_j = coords[j][3];
+	type y_j = coords[j][4];
+	type z_j = coords[j][5];
+
+	type res = sqrtf(pow(x_j-x_i,2) + pow(y_j-y_i,2) + pow(z_j-z_i,2));
+	return res;
+}
+
+type hydrophobic_energy(char* s, REAL_MATRIX coords){
+	int n = strlen(s);
+	type energy = 0;
+
+	int i,j;
+	for(i=0; i<n; i++){
+		for(j=i+1; j<n; j++){
+			//considera la distanza euclidea tra gli Ca degli amminoacidi in pos i e j
+			type dist = euclidean_dist(coords, i, j);
+			int pos_i = s[i]-65;
+			int pos_j = s[j]-65;
+
+			if(dist<10.0){
+				energy = energy + (hydrophobicity[pos_i]*hydrophobicity[pos_j])/dist;
+			}
+		}
+	}
+	return energy;
+
+}
+
+type electrostatic_energy(char* s, REAL_MATRIX coords){
+	int n = strlen(s);
+	type energy = 0;
+
+	int i,j;
+	for(i=0; i<n; i++){
+		for(j=i+1; j<n; j++){
+			//considera la distanza euclidea tra gli Ca degli amminoacidi in pos i e j
+			type dist = euclidean_dist(coords, i, j);
+			int pos_i = s[i]-65;
+			int pos_j = s[j]-65;
+
+			if(i!=j && dist<10.0 && charge[pos_i]!=0 && charge[pos_j]!=0){
+				energy = energy + (charge[pos_i]*charge[pos_j])/(dist*4.0);
+			}
+		}
+	}
+	return energy;
+}
+
+type packing_energy(char* s, REAL_MATRIX coords){
+	int n = strlen(s);
+	type energy = 0;
+
+	int i,j;
+	for(i=0; i<n; i++){
+		type density = 0;
+		int pos_i = s[i]-65;
+
+		for(j=0; j<n; j++){
+			//considera la distanza euclidea tra gli Ca degli amminoacidi in pos i e j
+			type dist = euclidean_dist(coords, i, j);
+			int pos_j = s[j]-65;
+
+			if(i!=j && dist<10.0){
+				density = density + (volume[pos_j])/pow(dist, 3);
+			}
+		}
+		energy = energy + pow((volume[pos_i]-density),2);
+	}
+	return energy;
+}
+
+type energy(char* s, VECTOR phi, VECTOR psi){
+
+	REAL_MATRIX coords = backbone(s, phi, psi);
+
+	//calcolo delle componenti energetiche
+	type rama = rama_energy(phi, psi);
+	type hydro = hydrophobic_energy(s, coords);
+	type elec = electrostatic_energy(s, coords);
+	type pack = packing_energy(s, coords);
+
+	//pesi per i diversi contributi
+	type w_rama = 1.0;
+	type w_hydro = 0.5;
+	type w_elec = 0.2;
+	type w_pack = 0.3;
+
+	//energia totale
+	type total = w_rama*rama + w_hydro*hydro + w_elec*elec + w_pack*pack;
+	return total;
+}
+
+
 void pst(params* input){
 	// --------------------------------------------------------------
 	// Codificare qui l'algoritmo di Predizione struttura terziaria
 	// --------------------------------------------------------------
-	int n;
-	type T,t,e;
-	n = input->N;
-	T = input->to;
-	e = energy di input->seq, input->phi, input->psi ;
-	t=0;
 
-	while(T <= 0){
-		int i;
-		type deltaE;
-		i = posizione casuale tra 0 e n;
+	//STESURA 1
+	// int n = input->N;
+	
+	// type T_0 = input->to;
+	// type T = T_0;
+	// char* s = input->seq;
+	// type k = input->k;
+	// type alpha = input->alpha;
 
-		type phi, psy; 
-		phi = valore reale tra - pi greco e pi greco;
-		psi = valore reale tra - pi greco e pi greco;
+	
 
-		input->phi[i] =  input->phi[i] + phi;
-		input->psi[i] = input->psi[i] + psi;
+	//calcola l'energia
+	type E = energy(input->seq, input->phi, input->psi);
+	type T = input->to;
 
-		deltaE = energy di input->seq, input->phi, input->psi - e;
-		if(deltaE <= 0){
-			e = energy di input->seq, input->phi, input->psi; 
-		}else{
-			type p,r;
-			p = calcolo probabilita accettazione;
-			r = numero random tra 0 e 1;
+	type t=0;
 
-			if(r <= P){
-				e = energy di input->seq, input->phi, input->psi; 
+	while(T <=0){
+		//genera un vicino della soluzione corrente
+		int i = rand()%(input->N); //prova anche altra formula col seed!
+		
+		//calcola variazioni casuali
+		type theta_phi = (random()*2*M_PI)-M_PI;
+		type theta_psi = (random()*2*M_PI)-M_PI;
+
+		//aggiorna i valori degli angoli
+		input->phi[i] = input->phi[i] + theta_phi;
+		input->psi[i] = input->psi[i] + theta_psi;
+
+		//calcola la variazione dell'energia
+		type new_E = energy(input->seq, input->phi, input->psi);
+		type delta_E = new_E - E;
+
+		if(delta_E <= 0){
+			//la configurazione è migliorata, la sostituisco a quella vecchia
+			E = new_E;
+		}else {
+			//calcola la probabilità di accettazione
+			type P = exp(-delta_E / (input->k * T));
+			type r = (type) rand() / RAND_MAX;  //ha senso il casting? o lascio a float?
+
+			if(r<=P){
+				//accetta la nuova configurazione
+				E = new_E;
 			}else{
-				input->phi[i] =  input->phi[i] - phi;
-				input->psi[i] = input->psi[i] - psi; // O + ?
+				//rifiuta la configurazione ripristina i valori per psi e phi
+				input->phi[i] = input->phi[i] - theta_phi;
+				input->psi[i] = input->psi[i] - theta_psi;
 			}
 		}
-
-		t = t + 1;
-		T = input->to - radice di alpha x t
+		//aggiorna la temperatura
+		t = t+1;
+		T = input->to - sqrt(input->alpha*t);
 	}
 
 }
+
+
 
 int main(int argc, char** argv) {
 	char fname_phi[256];
@@ -475,7 +790,7 @@ int main(int argc, char** argv) {
 	}
 
 	// COMMENTARE QUESTA RIGA!
-	prova(input);
+	//prova(input);
 	//
 
 	//
@@ -519,8 +834,7 @@ int main(int argc, char** argv) {
 	if(!input->silent)
 		printf("\nDone.\n");
 
-	dealloc_matrix(input->phi);
-	dealloc_matrix(input->psi);
+	
 	free(input);
 
 	return 0;
