@@ -1,6 +1,6 @@
 import struct
 
-with open('phi_256_to20_k1_alpha1_sd3.ds2', 'rb') as file:
+with open('src/phi_256_to20_k1_alpha1_sd3.ds2', 'rb') as file:
     data = file.read()
 
 float_size = 4 
