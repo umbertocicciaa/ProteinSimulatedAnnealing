@@ -8,15 +8,18 @@
             "type": "shell",
             "command": "/usr/bin/gcc",
             "args": [
-                "-g","${file}","-o","${fileDirname}/${fileBasenameNoExtension}","-lm"
+                "-m32", "-msse", "-O0",  // Fixed typo from -00 to -O0
+                "-no-pie", 
+                "${file}",
+                "-o", "${fileDirname}/${fileBasenameNoExtension}",
+                "-lm"
             ],
             "group": {
                 "kind": "build",
                 "isDefault": true
             },
-            "problemMatcher":["$gcc"],
-            "detail": "Compila il file attivo con GCC"
-
+            "problemMatcher": ["$gcc"],
+            "detail": "Compiles the active file with GCC"
         }
     ]
 }
