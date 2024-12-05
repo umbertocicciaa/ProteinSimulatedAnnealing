@@ -12,7 +12,7 @@
                 "-m32", "-msse", "-O0",  // Fixed typo from -00 to -O0
                 "-no-pie", 
                 "${file}",
-                "-o", "${fileDirname}/${fileBasenameNoExtension}.o",
+                "-o", "${fileDirname}/${fileBasenameNoExtension}",
                 "-lm"
             ],
             "group": {
