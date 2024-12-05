@@ -1,7 +1,4 @@
 {
-    // Use IntelliSense to learn about possible attributes.
-    // Hover to view descriptions of existing attributes.
-    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
     "version": "0.2.0",
     "configurations": [
         {
@@ -9,13 +6,20 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}/src/${fileBasenameNoExtension}",
-            "args": ["-seq", "seq_256.ds2", "-to", "20", "-alpha", "1", "-k", "1", "-sd", "3", "-d"],
+            "args": [
+                "-seq", "seq_256.ds2", 
+                "-to", "20", 
+                "-alpha", "1", 
+                "-k", "1", 
+                "-sd", "3", 
+                "-d"
+            ],
             "stopAtEntry": false,
-            "cwd": "${workspaceFolder}",
+            "cwd": "${workspaceFolder}/src/",  // Working directory (same as workspace folder)
             "environment": [],
             "externalConsole": false,
             "MIMode": "gdb",
-            "miDebuggerPath": "/usr/bin/gdb"  // Adjust this path as needed.
+            "miDebuggerPath": "/usr/bin/gdb"  // Adjust path if necessary
         }
     ]
 }
