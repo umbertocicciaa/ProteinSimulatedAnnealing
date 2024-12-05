@@ -8,6 +8,7 @@
             "type": "shell",
             "command": "/usr/bin/gcc",
             "args": [
+                "-g",
                 "-m32", "-msse", "-O0",  // Fixed typo from -00 to -O0
                 "-no-pie", 
                 "${file}",

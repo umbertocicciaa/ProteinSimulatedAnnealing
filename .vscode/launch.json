@@ -14,12 +14,13 @@
                 "-sd", "3", 
                 "-d"
             ],
-            "stopAtEntry": false,
+            "stopAtEntry": true,
             "cwd": "${workspaceFolder}/src/",  // Working directory (same as workspace folder)
             "environment": [],
             "externalConsole": false,
             "MIMode": "gdb",
-            "miDebuggerPath": "/usr/bin/gdb"  // Adjust path if necessary
+            "miDebuggerPath": "/usr/bin/gdb",  // Adjust path if necessary
+            "preLaunchTask": "gcc build active file"
         }
     ]
 }
