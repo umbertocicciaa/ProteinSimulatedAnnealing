@@ -46,6 +46,8 @@
 #include <time.h>
 #include <libgen.h>
 #include <xmmintrin.h>
+#include <malloc.h>
+#include <stdint.h>
 
 #define	type		float
 #define	MATRIX		type*
@@ -275,13 +277,166 @@ void gen_rnd_mat(VECTOR v, int N){
 	}
 }
 
-// PROCEDURE ASSEMBLY
-extern void prova(params* input);
+type approx_cos(type x)
+{
+	type x2 = x * x;
+	return 1 - (x2 / 2.0f) + (x2 * x2 / 24.0f) - (x2 * x2 * x2 / 720.0f);
+}
+
+type approx_sin(type x)
+{
+	type x2 = x * x;
+	return x - (x * x2 / 6.0f) + (x * x2 * x2 / 120.0f) - (x * x2 * x2 * x2 / 5040.0f);
+}
+
+void normalize_axis(VECTOR axis)
+{
+	type norm = axis[0] * axis[0] + axis[1] * axis[1] + axis[2] * axis[2];
+	norm = sqrtf(norm); 
+	axis[0] /= norm;
+	axis[1] /= norm;
+	axis[2] /= norm;
+}
+
+void rotation(VECTOR axis, type theta, MATRIX rotation_matrix){
+
+}
+
+MATRIX backbone(char *s, VECTOR phi, VECTOR psi){
+	
+	int n = strlen(s);
+
+	type r_ca_n = 1.46;
+	type r_ca_c = 1.52;
+	type r_c_n = 1.33;
+	
+	type theta_ca_c_n = 2.028;
+	type theta_c_n_ca = 2.124;
+	type theta_n_ca_c = 1.940;
+	
+	MATRIX coords = alloc_matrix(1, n*3*3);
+	
+	int i, j;
+	
+	for(i=0; i<3; i++) 
+		coords[i]=0;
+	
+	coords[i] = r_ca_n;
+	coords[i+1] = 0; 
+	coords[i+2] = 0;
+
+	for(i=0; i<n; i++){
+		int idx=i*3*3;
+		if (i > 0) {
+			...
+		}
+	}
+
+}
+
+type rama_energy(VECTOR phi, VECTOR psi){
+	int n = 26;
+	type alpha_phi = -57.8;
+	type alpha_psi = -47.0;
+	type beta_phi = -119.0;
+	type beta_psi = 113.0;
+	type energy = 0;
+
+	int i;
+	for(i=0; i<n; i++){
+		type alpha_dist = sqrt(pow(phi[i]-alpha_phi,2)+pow(psi[i]-alpha_psi,2));
+		type beta_dist = sqrt(pow(phi[i]-beta_phi,2)+pow(psi[i]-beta_psi,2));
+		type min;
+		if(alpha_dist<beta_dist) 
+			min = alpha_dist;
+		else 
+			min = beta_dist;
+		energy = energy + 0.5 * min;
+	}
+	return energy;
+}
+
+type euclidean_dist(MATRIX coords, int i, int j){
+
+}
+
+type hydrophobic_energy(char *s, MATRIX coords){
+
+}
+
+type electrostatic_energy(char *s, MATRIX coords){
+
+}
+
+type packing_energy(char *s, MATRIX coords){
+	
+}
+
+type energy(char *s, VECTOR phi, VECTOR psi){
+	MATRIX coords = backbone(s,phi,psi);
+
+	type rama = rama_energy(phi, psi);
+    type hydro = hydrophobic_energy(s, coords);
+    type elec = electrostatic_energy(s, coords);
+    type pack = packing_energy(s, coords);
+
+	type w_rama = 1.0;
+    type w_hydro = 0.5;
+    type w_elec = 0.2;
+    type w_pack = 0.3;
+
+	type total = w_rama * rama + w_hydro * hydro + w_elec * elec + w_pack * pack;
+	return total;
+}
+
 
 void pst(params* input){
+
 	// --------------------------------------------------------------
 	// Codificare qui l'algoritmo di Predizione struttura terziaria
 	// --------------------------------------------------------------
+
+	type E = energy(input->seq, input->phi, input->psi);
+	type T = input->to;
+
+	type t = 0;
+
+	while (T > 0)
+	{
+		int i = rand() % (input->N);
+
+		type theta_phi = (random() * 2 * M_PI) - M_PI;
+		type theta_psi = (random() * 2 * M_PI) - M_PI;
+
+		input->phi[i] = input->phi[i] + theta_phi;
+		input->psi[i] = input->psi[i] + theta_psi;
+
+		type new_E = energy(input->seq, input->phi, input->psi);
+		type delta_E = new_E - E;
+
+		if (delta_E <= 0)
+		{
+			E = new_E;
+		}
+		else
+		{
+			type P = exp(-delta_E / (input->k * T));
+			type r = (type)rand() / RAND_MAX; 
+
+			if (r <= P)
+			{
+				E = new_E;
+			}
+			else
+			{
+				input->phi[i] = input->phi[i] - theta_phi;
+				input->psi[i] = input->psi[i] - theta_psi;
+			}
+		}
+		t = t + 1;
+		T = input->to - sqrt(input->alpha * t);
+	}
+
 }
 
 int main(int argc, char** argv) {
@@ -434,10 +589,6 @@ int main(int argc, char** argv) {
 		printf("Dataset file name: '%s'\n", seqfilename);
 		printf("Sequence lenght: %d\n", input->N);
 	}
-
-	// COMMENTARE QUESTA RIGA!
-	prova(input);
-	//
 
 	//
 	// Predizione struttura terziaria
