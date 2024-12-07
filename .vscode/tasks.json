@@ -1,26 +1,58 @@
 {
-    // See https://go.microsoft.com/fwlink/?LinkId=733558
-    // for the documentation about the tasks.json format
     "version": "2.0.0",
     "tasks": [
         {
-            "label": "gcc build active file",
+            "label": "nasm build active file",
+            "type": "shell",
+            "command": "/usr/bin/nasm",  // Corrected path to nasm
+            "args": [
+                "-f", 
+                "elf32", 
+                "${fileDirname}/${fileBasenameNoExtension}_ASSEMBLY.nasm"
+            ],
+            "options": {
+                "cwd": "${fileDirname}" 
+            },
+            "group": {
+                "kind": "build",
+                "isDefault": false
+            },
+            "problemMatcher": [],
+            "detail": "Compiles the assembly file with NASM to ELF32 object file"
+        },
+        {
+            "label": "gcc link active object file",
             "type": "shell",
             "command": "/usr/bin/gcc",
             "args": [
                 "-g",
-                "-m32", "-msse", "-O0",  // Fixed typo from -00 to -O0
+                "-m32", 
+                "-msse", 
+                "-O0",
                 "-no-pie", 
-                "${file}",
+                "${fileDirname}/${fileBasenameNoExtension}.c",
                 "-o", "${fileDirname}/${fileBasenameNoExtension}",
+                "${fileDirname}/${fileBasenameNoExtension}_ASSEMBLY.o",
                 "-lm"
             ],
             "group": {
                 "kind": "build",
-                "isDefault": true
+                "isDefault": false
             },
-            "problemMatcher": ["$gcc"],
-            "detail": "Compiles the active file with GCC"
+            "problemMatcher": [],
+            "detail": "Links the object file with GCC to create an executable"
+        },
+        {
+            "label": "run both build tasks",
+            "type": "shell",
+            "command": "echo Running both NASM and GCC tasks...",
+            "dependsOn": [
+                "nasm build active file",
+                "gcc link active object file"
+            ],
+            "group": "build",
+            "problemMatcher": [],
+            "detail": "Runs both NASM and GCC tasks in sequence"
         }
     ]
 }
