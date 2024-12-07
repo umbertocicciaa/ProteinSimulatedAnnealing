@@ -300,45 +300,47 @@ void gen_rnd_mat(VECTOR v, int N){
 	}
 }
 
-// PROCEDURE ASSEMBLY
-
-//extern void prova(params* input);
-extern void sum(VECTOR v1, VECTOR v2, VECTOR res);
-extern void sub(VECTOR v1, VECTOR v2, VECTOR res);
-extern void div_scalare(VECTOR v1,  VECTOR v2);
-extern void prodotto_scalare(VECTOR v1, VECTOR v2, type* res);
-extern void normalize(VECTOR v, type* res);
-extern void mul(VECTOR v1, VECTOR v2);
-extern void euclidean_dist_sse(VECTOR v1, VECTOR v2, type* res);
-
+void sub(VECTOR v1, VECTOR v2, VECTOR res){	
+    	for(int i=0;i< 4; i++){
+          	res[i]=v1[i]-v2[i];
+	}
+}
 
 void div_scalareC(VECTOR v, type s){
-	for(int i=0;i<3; i++){
+	if(s==0) s=1;
+    for(int i=0;i<3; i++){
         v[i]=v[i]/s;
 	}
 }
 
-
-type euclidean_dist(VECTOR v1, VECTOR v2, type* res){
-	*res = sqrtf(pow(v2[0]-v1[0],2) + pow(v2[1]-v1[1],2) + pow(v2[2]-v1[2],2));
+void sum(VECTOR v1, VECTOR v2, VECTOR res){
+	for(int i=0;i< 4; i++){
+        res[i]=v1[i]+v2[i];
+	}
 }
 
-void norm(VECTOR v, type* res){
+
+/*void norm(VECTOR v, type* res){
 	normalize(v, res);
-    	*res = sqrtf(*res);
-}
+    *res = sqrtf(*res);
+}*/
 
 void prodotto_vettore_scalare(VECTOR v, type s){
-	for(int i=0;i<3;i++){
+	for(int i=0;i<4;i++){
 		v[i]=v[i] * s;
 	}
 }
 
+void prodotto_scalare(VECTOR v1, VECTOR v2, type* res){
+	type prodotto = 0;
+	for(int i=0; i<3;i++){
+		prodotto += v1[i]*v2[i];
+	}
+	*res = prodotto;
+}
+
+
 void prodotto_vettore_matrice(VECTOR v, REAL_MATRIX m, VECTOR res){
-	for (int i = 0; i < 3; i++) {
-        res[i] = 0.0f;
-    }
-    
     // Esegui il prodotto tra il vettore e la matrice
     for (int i = 0; i < 3; i++) { // Itera sulle colonne della matrice
         for (int j = 0; j < 3; j++) { // Itera sulle righe della matrice
@@ -347,6 +349,11 @@ void prodotto_vettore_matrice(VECTOR v, REAL_MATRIX m, VECTOR res){
     }
 }
 
+void mul(VECTOR v1, VECTOR v2){
+	for(int i=0;i<4;i++){
+		v1[i] = v1[i] * v2[i];
+	}
+}
 
 // Funzioni per approssimazioni polinomiali di coseno e seno
 type approx_cos(type x) {
@@ -359,16 +366,17 @@ type approx_sin(type x) {
     return x - (x * x2 / 6.0f) + (x * x2 * x2 / 120.0f) - (x * x2 * x2 * x2 / 5040.0f);
 }
 
-/*void normalize_axis(VECTOR axis) {
+void normalize_axis(VECTOR axis) {
     // Calcola la norma del vettore axis (prodotto scalare di axis con se stesso)
-    type norm = axis[0] * axis[0] + axis[1] * axis[1] + axis[2] * axis[2];
+    type norm = axis[0] * axis[0] + axis[1] * axis[1] + axis[2] * axis[2] + axis[3]*axis[3];
     norm = sqrtf(norm); // Calcolo della radice quadrata
     // Normalizza il vettore axis
     axis[0] /= norm;
     axis[1] /= norm;
     axis[2] /= norm;
+    axis[3] /= norm;
 }
-*/
+
 
 void mul_matrix(type* vector, type** matrix, type* result, int n){
 	// Inizializza il risultato a zero
@@ -385,40 +393,10 @@ void mul_matrix(type* vector, type** matrix, type* result, int n){
 }
 
 
-
-/*void rotation(VECTOR axis, type theta, REAL_MATRIX rotation_matrix) {
-    // Normalizzazione dell'asse
-    normalize_axis(axis);
-
-    // Calcolo di a, b, c, d
-    type a = approx_cos(theta / 2.0f);
-    type b = -axis[0] * approx_sin(theta / 2.0f);
-    type c = -axis[1] * approx_sin(theta / 2.0f);
-    type d = -axis[2] * approx_sin(theta / 2.0f);
-
-    // Calcolo dei termini della matrice di rotazione
-    rotation_matrix[0][0] = a * a + b * b - c * c - d * d;
-    rotation_matrix[0][1] = 2 * (b * c + a * d);
-    rotation_matrix[0][2] = 2 * (b * d - a * c);
-
-    rotation_matrix[1][0] = 2 * (b * c - a * d);
-    rotation_matrix[1][1] = a * a + c * c - b * b - d * d;
-    rotation_matrix[1][2] = 2 * (c * d + a * b);
-
-    rotation_matrix[2][0] = 2 * (b * d + a * c);
-    rotation_matrix[2][1] = 2 * (c * d - a * b);
-    rotation_matrix[2][2] = a * a + d * d - b * b - c * c;
-}*/
-
 void rotation(VECTOR axis, type theta, REAL_MATRIX rotation_matrix){
 	type res;
 	type a, b, c, d;
 	prodotto_scalare(axis, axis, &res);
-
-	/*VECTOR resVector = alloc_matrix(1,4);
-    for (int i = 0; i < 4; i++) resVector[i] = res;
-    
-    div_scalare(axis, resVector);*/
 
 	div_scalareC(axis, res);
 	prodotto_vettore_scalare(axis, approx_sin(theta / 2.0f));
@@ -444,7 +422,7 @@ void rotation(VECTOR axis, type theta, REAL_MATRIX rotation_matrix){
 }
 
 
-MATRIX backbone(char*s, int n, VECTOR phi, VECTOR psi){
+MATRIX backbone(char* s, int n, VECTOR phi, VECTOR psi){
 
 	//distanze atomi in Angstrom
 	type r_ca_n = 1.46;
@@ -476,10 +454,6 @@ MATRIX backbone(char*s, int n, VECTOR phi, VECTOR psi){
 		if (i>0) {
 
 			//posiziona N
-		
-			//VECTOR coords_c = alloc_matrix(1, 3);
-			//VECTOR coords_c_alpha = alloc_matrix(1, 3);
-
 			VECTOR coords_c = alloc_matrix(1, 4);
             VECTOR coords_c_alpha = alloc_matrix(1, 4);
 
@@ -491,20 +465,13 @@ MATRIX backbone(char*s, int n, VECTOR phi, VECTOR psi){
 			coords_c[3]=0; 
 			coords_c_alpha[3]=0;
 			
-			//VECTOR v1 = alloc_matrix(1,3);
 			VECTOR v1=alloc_matrix(1,4);
 			
 			// C-C_alpha
 			sub(coords_c, coords_c_alpha, v1);
 			
 			//v1/||v1||
-			type norma;
-			norm(v1, &norma);
-			/*VECTOR resVector = alloc_matrix(1,4);
-    		for (int i = 0; i < 4; i++) resVector[i] = norma;
-    
-    		div_scalare(v1, resVector);*/
-			div_scalareC(v1, norma);
+            normalize_axis(v1);
 
 			//costruzione matrice rotation
 			REAL_MATRIX rotation_matrix = alloc_real_matrix(3,3);
@@ -528,13 +495,9 @@ MATRIX backbone(char*s, int n, VECTOR phi, VECTOR psi){
 			VECTOR v2 = alloc_matrix(1,4);
 			//N - C
 			sub(coords_n, coords_c, v2);
-			//v2/||v2||
-			norm(v2, &norma);    
-			/*resVector = alloc_matrix(1,4);
-    		for (int i = 0; i < 4; i++) resVector[i] = norma;
-    
-    		div_scalare(v2, resVector);   */                 
-			div_scalareC(v2, norma);
+			
+            //v2/||v2||
+            normalize_axis(v2);
 			
 			rotation(v2, phi[i], rotation_matrix);
 			
@@ -562,13 +525,7 @@ MATRIX backbone(char*s, int n, VECTOR phi, VECTOR psi){
 		sub(coords_c_alpha, coords_n, v3);
 	
 		//v3/||v3||
-		type norma;
-		norm(v3, &norma);
-		/*VECTOR resVector = alloc_matrix(1,4);
-    	for (int i = 0; i < 4; i++) resVector[i] = norma;
-    
-    	div_scalare(v3, resVector);*/
-		div_scalareC(v3, norma);
+        normalize_axis(v3);
 
 		REAL_MATRIX rotation_matrix = alloc_real_matrix(3,3);
 		rotation(v3, psi[i], rotation_matrix);
@@ -699,6 +656,11 @@ type rama_energy(VECTOR phi, VECTOR psi){
 	return energy;
 }
 
+
+type euclidean_dist(VECTOR v1, VECTOR v2, type* res){
+	*res = sqrtf(pow(v2[0]-v1[0],2) + pow(v2[1]-v1[1],2) + pow(v2[2]-v1[2],2));
+}
+
 /*type hydrophobic_energy(char* s, REAL_MATRIX coords){
 	int n = strlen(s);
 	type energy = 0;
@@ -744,7 +706,7 @@ type hydrophobic_energy(char* s, int n, MATRIX coords){
 			coords_c_alpha_j[k]=0;
 			
 			type dist = 0;
-			euclidean_dist_sse(coords_c_alpha_i, coords_c_alpha_j, &dist);
+			euclidean_dist(coords_c_alpha_i, coords_c_alpha_j, &dist);
 			int pos_i = s[i]-65;
                         int pos_j = s[j]-65;
 
@@ -797,7 +759,7 @@ type electrostatic_energy(char* s, int n, MATRIX coords){
             k=3;
 			coords_c_alpha_j[k]=0;
 			type dist = 0;
-			euclidean_dist_sse(coords_c_alpha_i, coords_c_alpha_j, &dist);
+			euclidean_dist(coords_c_alpha_i, coords_c_alpha_j, &dist);
                         int pos_i = s[i]-65;
                         int pos_j = s[j]-65;
 
@@ -837,19 +799,19 @@ type packing_energy(char* s, int n, MATRIX coords){
         int i,j,k;
         //estrapolo coordinate C_alpha_i e C_alpha_j
         for(i=0; i<n ; i++){
-		type density = 0;
-		int pos_i = s[i]-65;
+            type density = 0;
+            int pos_i = s[i]-65;
 
-                int idx_i = i*3*3+3; //indirizzo base generico C_alpha_i
+            int idx_i = i*3*3+3; //indirizzo base generico C_alpha_i
+                    
+            VECTOR coords_c_alpha_i = alloc_matrix(1,4);
+            for(k=0; k<3 ; k++)     coords_c_alpha_i[k] = coords[idx_i+k];
+			k=3;
+			coords_c_alpha_i[k]=0;
                 
-		VECTOR coords_c_alpha_i = alloc_matrix(1,4);
-                for(k=0; k<3 ; k++)     coords_c_alpha_i[k] = coords[idx_i+k];
-				k=3;
-				coords_c_alpha_i[k]=0;
-                
-		for(j=i+1; j<n ; j++){
+		    for(j=i+1; j<n ; j++){
 
-                        int idx_j=j*3*3+3; //indirizzo base generico C_alpha_j
+                int idx_j=j*3*3+3; //indirizzo base generico C_alpha_j
 		
 	     		VECTOR coords_c_alpha_j = alloc_matrix(1,4);
                 for(k=0; k<3 ; k++) coords_c_alpha_j[k] = coords[idx_j+k];
@@ -857,7 +819,7 @@ type packing_energy(char* s, int n, MATRIX coords){
 				coords_c_alpha_j[k]=0;
                        
 		       	type dist = 0;
-				euclidean_dist_sse(coords_c_alpha_i, coords_c_alpha_j, &dist);
+				euclidean_dist(coords_c_alpha_i, coords_c_alpha_j, &dist);
                 int pos_j = s[j]-65;
 
                 if(i!=j && dist < 10.0)
