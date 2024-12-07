@@ -85,6 +85,8 @@ V 	equ		8
 W   equ     12    
 res equ     16
 
+
+
 sub:
 		; ------------------------------------------------------------
 		; Sequenza di ingresso nella funzione
@@ -101,14 +103,14 @@ sub:
 		; elaborazione
 		
 		MOV EAX, [EBP+V]	
-        MOV EBX, [EBP+W]
+        MOV EDX, [EBP+W]
 		MOV ECX, [EBP+res]
 
 		MOVAPS XMM0, [EAX]
-        MOVAPS XMM1, [EBX]
+        MOVAPS XMM1, [EDX]
         SUBPS XMM1, XMM0
         MOVAPS [ECX], XMM1
-		
+	
 		; ------------------------------------------------------------
 		; Sequenza di uscita dalla funzione
 		; ------------------------------------------------------------
@@ -169,7 +171,7 @@ A equ 8
 B equ 12
 C equ 16
 
-msg	db	'e:',32,0
+msg2	db	'e:',32,0
 
 
 	euclidean_dist_sse:
@@ -205,23 +207,19 @@ msg	db	'e:',32,0
 		; Calcola il quadrato delle differenze
 		MULPS XMM1, XMM1         ; xmm1 = (x2-x1)^2, (y2-y1)^2, (z2-z1)^2, 0
 		MOVSS [e], XMM1
-		printss e
 		
 		; Somma le differenze quadrate: (x2-x1)^2 + (y2-y1)^2 + (z2-z1)^2
 		HADDPS XMM1, XMM1          ; xmm1 = ((x2-x1)^2 + (y2-y1)^2), (z2-z1)^2, 0, 0
 		HADDPS XMM1, XMM1          ; xmm1 = ((x2-x1)^2 + (y2-y1)^2 + (z2-z1)^2), 0, 0, 0
 		MOVSS [e], XMM1
-		printss e
 
 		; Calcola la radice quadrata
 		SQRTPS XMM1,XMM1          ; xmm1 = sqrt(xmm1)
 		MOVSS [e], XMM1
-		printss e
 		
 		; Salva il risultato (la distanza)
 		MOVSS [ECX], XMM1
 		MOVSS [e], XMM1
-		printss e
 
 		; ------------------------------------------------------------
 		; Sequenza di uscita dalla funzione
