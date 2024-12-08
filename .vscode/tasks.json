@@ -53,6 +53,27 @@
             "group": "build",
             "problemMatcher": [],
             "detail": "Runs both NASM and GCC tasks in sequence"
-        }
+        },
+        {
+            "label": "gcc only c",
+            "type": "shell",
+            "command": "/usr/bin/gcc",
+            "args": [
+                "-g",
+                "-m32", 
+                "-msse", 
+                "-O0",
+                "-no-pie", 
+                "${fileDirname}/${fileBasenameNoExtension}.c",
+                "-o", "${fileDirname}/${fileBasenameNoExtension}",
+                "-lm"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": false
+            },
+            "problemMatcher": [],
+            "detail": "Only C"
+        },
     ]
 }
