@@ -75,5 +75,25 @@
             "problemMatcher": [],
             "detail": "Only C"
         },
+        {
+            "label": "gcc only c no debug",
+            "type": "shell",
+            "command": "/usr/bin/gcc",
+            "args": [
+                "-m32", 
+                "-msse", 
+                "-O0",
+                "-no-pie", 
+                "${fileDirname}/${fileBasenameNoExtension}.c",
+                "-o", "${fileDirname}/${fileBasenameNoExtension}",
+                "-lm"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": false
+            },
+            "problemMatcher": [],
+            "detail": "Only C no debug"
+        },
     ]
 }
