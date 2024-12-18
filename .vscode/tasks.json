@@ -43,6 +43,27 @@
             "detail": "Links the object file with GCC to create an executable"
         },
         {
+            "label": "gcc link active object file no debugger",
+            "type": "shell",
+            "command": "/usr/bin/gcc",
+            "args": [
+                "-m32", 
+                "-msse", 
+                "-O0",
+                "-no-pie", 
+                "${fileDirname}/${fileBasenameNoExtension}.c",
+                "-o", "${fileDirname}/${fileBasenameNoExtension}",
+                "${fileDirname}/${fileBasenameNoExtension}_ASSEMBLY.o",
+                "-lm"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": false
+            },
+            "problemMatcher": [],
+            "detail": "Links the object file with GCC to create an executable no debugger"
+        },
+        {
             "label": "run both build tasks",
             "type": "shell",
             "command": "echo Running both NASM and GCC tasks...",
@@ -53,6 +74,18 @@
             "group": "build",
             "problemMatcher": [],
             "detail": "Runs both NASM and GCC tasks in sequence"
+        },
+        {
+            "label": "run both build tasks no debugger",
+            "type": "shell",
+            "command": "echo Running both NASM and GCC tasks...",
+            "dependsOn": [
+                "nasm build active file",
+                "gcc link active object file no debugger"
+            ],
+            "group": "build",
+            "problemMatcher": [],
+            "detail": "Runs both NASM and GCC tasks in sequence no debugger"
         },
         {
             "label": "gcc only c",

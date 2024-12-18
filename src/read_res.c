@@ -116,7 +116,7 @@ int main(){
     int rows;
 	int cols;
 	//char f[256] = "../src64/phi_double.ds2";
-	char f[256] = "../src64/psi_double.ds2";
+	char f[256] = "./psi_double.ds2";
 	MATRIX phi = load_data(f, &rows, &cols);
 	printf("rows: %i, cols: %i\n", rows, cols);
 	int i;
