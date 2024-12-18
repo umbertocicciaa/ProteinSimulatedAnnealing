@@ -79,62 +79,6 @@ extern free_block
 ; Funzioni
 ; ------------------------------------------------------------
 
-global prova
-
-input		equ		8
-
-msg	db	'e:',32,0
-nl	db	10,0
-
-
-
-prova:
-		; ------------------------------------------------------------
-		; Sequenza di ingresso nella funzione
-		; ------------------------------------------------------------
-		push		ebp		; salva il Base Pointer
-		mov		ebp, esp	; il Base Pointer punta al Record di Attivazione corrente
-		push		ebx		; salva i registri da preservare
-		push		esi
-		push		edi
-		; ------------------------------------------------------------
-		; legge i parametri dal Record di Attivazione corrente
-		; ------------------------------------------------------------
-
-		; elaborazione
-		
-		; esempio: stampa input->e
-		mov EAX, [EBP+input]	; indirizzo della struttura contenente i parametri
-        ; [EAX]      input->seq; 			// sequenza
-		; [EAX + 4]  input->N; 			    // numero elementi sequenza
-		; [EAX + 8]  input->sd;			    // seed
-		; [EAX + 12] input->to;			    // temperatura
-		; [EAX + 16] input->alpha;		    // tasso raffredamento
-		; [EAX + 20] input->k; 		        // costante
-		; [EAX + 24] input->hydrophobicity;	// hydrophobicity
-		; [EAX + 28] input->volume;		    // volume
-		; [EAX + 32] input->charge;		    // charge
-		; [EAX + 36] input->phi;		    // vettore angoli phi
-		; [EAX + 40] input->psi;		    // vettore angoli psi
-		; [EAX + 44] input->e;			    // energy
-		; [EAX + 48] input->dispaly;
-		; [EAX + 52] input->silent;
-		MOVSS XMM0, [EAX+44]
-		MOVSS [e], XMM0 
-		prints msg            
-		printss e   
-		prints nl
-		; ------------------------------------------------------------
-		; Sequenza di uscita dalla funzione
-		; ------------------------------------------------------------
-
-		pop	edi		; ripristina i registri da preservare
-		pop	esi
-		pop	ebx
-		mov	esp, ebp	; ripristina lo Stack Pointer
-		pop	ebp		; ripristina il Base Pointer
-		ret			; torna alla funzione C chiamante
-
 global sum
 res 	equ	16
 W       equ     12    
@@ -217,48 +161,6 @@ V       equ   8
               ret                     ; torna alla funzione C chiamante
 
 
-
-global prodotto_scalare
-V equ 8
-W equ 12
-RES equ 16
-   
-    prodotto_scalare:
-                ; ------------------------------------------------------------
-                ; Sequenza di ingresso nella funzione
-                ; ------------------------------------------------------------
-               push            ebp             ; salva il Base Pointer
-               mov             ebp, esp        ; il Base Pointer punta al Record di Attivazione corrente
-               push            ebx             ; salva i registri da preservare
-               push            esi
-               push            edi
-                ; ------------------------------------------------------------
-                ; legge i parametri dal Record di Attivazione corrente
-                ; ------------------------------------------------------------
-
-                ; elaborazione
-
-
-        MOV EAX, [EBP+V]
-        MOVAPS XMM0, [EAX]
-        MOV EBX, [EBP+S]
-        MOVAPS XMM1, [EBX]
-	MOV ECX, [EBP+RES]
-        MULPS XMM0, XMM1
-	HADDPS XMM0, XMM0
-	HADDPS XMM0, XMM0
-        MOVSS [ECX], XMM0
-
-                ; ------------------------------------------------------------
-                ; Sequenza di uscita dalla funzione
-                ; ------------------------------------------------------------
-
-              pop     edi             ; ripristina i registri da preservare
-              pop     esi
-              pop     ebx
-              mov     esp, ebp        ; ripristina lo Stack Pointer
-              pop     ebp             ; ripristina il Base Pointer
-              ret                     ; torna alla funzione C chiamante
 
 global normalize 
 V equ 8
@@ -435,6 +337,235 @@ W equ 12
         MOVAPS [EAX], XMM0
 
                 ; ------------------------------------------------------------
+                ; Sequenza di uscita dalla funzione
+                ; ------------------------------------------------------------
+
+              pop     edi             ; ripristina i registri da preservare
+              pop     esi
+              pop     ebx
+              mov     esp, ebp        ; ripristina lo Stack Pointer
+              pop     ebp             ; ripristina il Base Pointer
+              ret                     ; torna alla funzione C chiamante
+
+global alpha_beta_dist
+
+V equ 8
+W equ 12
+res1 equ 16
+res2 equ 20
+
+	alpha_beta_dist:
+	; ------------------------------------------------------------
+                ; Sequenza di ingresso nella funzione
+                ; ------------------------------------------------------------
+                push            ebp             ; salva il Base Pointer
+                mov             ebp, esp        ; il Base Pointer punta al Record di Attivazione corrente
+                push            ebx             ; salva i registri da preservare
+                push            esi
+                push            edi
+                ; ------------------------------------------------------------
+                ; legge i parametri dal Record di Attivazione corrente
+                ; ------------------------------------------------------------
+
+                ; elaborazione
+                MOV EAX, [EBP+V]
+                MOV EBX, [EBP+W]
+                MOVAPS XMM0, [EAX]
+		MOVAPS XMM1, [EBX]
+		MOV ECX, [EBP+res1]
+		MOV EDX, [EBP+res2]
+		SUBPS XMM0, XMM1
+		MULPS XMM0, XMM0
+                HADDPS XMM0, XMM0
+                SQRTPS XMM0, XMM0
+                MOVSS [ECX], XMM0
+		MOVSHDUP XMM0, XMM0 	
+		MOVSS [EDX], XMM0
+		
+  ; ------------------------------------------------------------
+                ; Sequenza di uscita dalla funzione
+                ; ------------------------------------------------------------
+
+
+                pop     edi             ; ripristina i registri da preservare
+                pop     esi
+                pop     ebx
+                mov     esp, ebp        ; ripristina lo Stack Pointer
+                pop     ebp             ; ripristina il Base Pointer
+                ret                     ; torna alla funzione C chiamante
+
+global prodotto_scalare
+V equ 8
+W equ 12
+RES equ 16
+   
+    prodotto_scalare:
+                ; ------------------------------------------------------------
+                ; Sequenza di ingresso nella funzione
+                ; ------------------------------------------------------------
+               push            ebp             ; salva il Base Pointer
+               mov             ebp, esp        ; il Base Pointer punta al Record di Attivazione corrente
+               push            ebx             ; salva i registri da preservare
+               push            esi
+               push            edi
+                ; ------------------------------------------------------------
+                ; legge i parametri dal Record di Attivazione corrente
+                ; ------------------------------------------------------------
+
+                ; elaborazione
+
+
+        MOV EAX, [EBP+V]
+        MOVAPS XMM0, [EAX]
+        MOV EBX, [EBP+W]
+        MOVAPS XMM1, [EBX]
+	MOV ECX, [EBP+RES]
+        MULPS XMM0, XMM1
+	HADDPS XMM0, XMM0
+	HADDPS XMM0, XMM0
+        MOVSS [ECX], XMM0
+
+                ; ------------------------------------------------------------
+                ; Sequenza di uscita dalla funzione
+                ; ------------------------------------------------------------
+
+              pop     edi             ; ripristina i registri da preservare
+              pop     esi
+              pop     ebx
+              mov     esp, ebp        ; ripristina lo Stack Pointer
+              pop     ebp             ; ripristina il Base Pointer
+              ret                     ; torna alla funzione C chiamante
+
+
+global prodotto_vettore_matrice_CICLO:
+    A equ 8    ;v
+    B equ 12   ;m
+    C equ 16   ;res
+
+    prodotto_vettore_matrice_CICLO: 
+         ; ------------------------------------------------------------
+                ; Sequenza di ingresso nella funzione
+                ; ------------------------------------------------------------
+               push            ebp             ; salva il Base Pointer
+               mov             ebp, esp        ; il Base Pointer punta al Record di Attivazione corrente
+               push            ebx             ; salva i registri da preservare
+               push            esi
+               push            edi
+                ; ------------------------------------------------------------
+                ; legge i parametri dal Record di Attivazione corrente
+                ; ------------------------------------------------------------
+
+                ; elaborazione
+        MOV eax, [EBP+A] ;vettore v
+        MOV ebx, [EBP+B] ;matrice m in column-major order
+        MOV edx, [EBP+C] ;vettore res
+
+    ; Inizializza res[0..3] = 0
+    xorps xmm0, xmm0
+    movaps [edx], xmm0          ; res[0..3] = 0
+
+	; Carica il vettore v in xmm2 (4 float)
+    movaps xmm2, [eax]          ; xmm2 = v[0..3]
+
+    ; Ciclo per 4 iterazioni (per ogni colonna della matrice 4x4)
+    mov ecx, 0                  ; ecx = indice della colonna incrementato di 4float per volta
+    mov edi, 0                  ; edi = indice di posizionamento di res[i]
+
+
+.loop_start:
+    ; Carica la colonna della matrice nella XMM1 (usando column-major order)
+    movaps xmm1, [ebx + ecx*4]  ; Carica la colonna `ecx` della matrice nella xmm1 (4 valori consecutivi)
+
+    ; Moltiplicazione elemento per elemento tra xmm1 (colonna della matrice) e xmm2 (vettore v)
+    mulps xmm1, xmm2            ; xmm1 = xmm1 * xmm2 (moltiplica ogni elemento di xmm1 per xmm2)
+
+    ; Somma orizzontale: somma i valori in xmm1
+    haddps xmm1, xmm1           ; xmm1 = [x1+x2, x3+x4, x1+x2, x3+x4]
+    haddps xmm1, xmm1           ; xmm1 = [x1+x2+x3+x4, x1+x2+x3+x4, x1+x2+x3+x4, x1+x2+x3+x4]
+
+    ; Salva il risultato in res[ecx]
+    movss [edx + edi*4], xmm1   ; Copia il risultato in res[ecx] (solo il primo valore di xmm1)
+
+    ; Incrementa l'indice della colonna
+    add ecx, 4
+    inc edi
+    cmp ecx, 16
+    jl .loop_start
+  ; ------------------------------------------------------------
+                ; Sequenza di uscita dalla funzione
+                ; ------------------------------------------------------------
+
+              pop     edi             ; ripristina i registri da preservare
+              pop     esi
+              pop     ebx
+              mov     esp, ebp        ; ripristina lo Stack Pointer
+              pop     ebp             ; ripristina il Base Pointer
+              ret                     ; torna alla funzione C chiamante
+
+global prodotto_vettore_matrice:
+    A equ 8  ;v
+    B equ 12   ;m
+    C equ 16   ;res
+
+    prodotto_vettore_matrice: 
+         ; ------------------------------------------------------------
+                ; Sequenza di ingresso nella funzione
+                ; ------------------------------------------------------------
+               push            ebp             ; salva il Base Pointer
+               mov             ebp, esp        ; il Base Pointer punta al Record di Attivazione corrente
+               push            ebx             ; salva i registri da preservare
+               push            esi
+               push            edi
+                ; ------------------------------------------------------------
+                ; legge i parametri dal Record di Attivazione corrente
+                ; ------------------------------------------------------------
+
+                ; elaborazione
+        MOV eax, [EBP+A] ;vettore v
+        MOV ebx, [EBP+B] ;matrice m in column-major order
+        MOV edx, [EBP+C] ;vettore res
+
+    ; Inizializza res[0..3] = 0
+    xorps xmm0, xmm0
+    movaps [edx], xmm0          ; res[0..3] = 0
+
+	; Carica il vettore v in xmm2 (4 float)
+    movaps xmm2, [eax]          ; xmm2 = v[0..3]
+
+
+    ; Carica la colonna della matrice nella XMM1 (usando column-major order)
+    movaps xmm1, [ebx]  ; Carica la colonna `ecx` della matrice nella xmm1 (4 valori consecutivi)
+    movaps xmm3, [ebx + 16]
+    movaps xmm4, [ebx + 32]
+    movaps xmm5, [ebx + 48]
+
+    ; Moltiplicazione elemento per elemento tra xmm1 (colonna della matrice) e xmm2 (vettore v)
+    mulps xmm1, xmm2            ; xmm1 = xmm1 * xmm2 (moltiplica ogni elemento di xmm1 per xmm2)
+    mulps xmm3, xmm2
+    mulps xmm4, xmm2
+    mulps xmm5, xmm2
+
+    ; Somma orizzontale: somma i valori in xmm1
+    haddps xmm1, xmm1           ; xmm1 = [x1+x2, x3+x4, x1+x2, x3+x4]
+    haddps xmm1, xmm1           ; xmm1 = [x1+x2+x3+x4, x1+x2+x3+x4, x1+x2+x3+x4, x1+x2+x3+x4]
+
+    haddps xmm3, xmm3
+    haddps xmm3, xmm3
+
+    haddps xmm4, xmm4
+    haddps xmm4, xmm4
+
+    haddps xmm5, xmm5
+    haddps xmm5, xmm5
+
+    ; Salva il risultato in res[ecx]
+    movss [edx], xmm1   ; Copia il risultato in res[ecx] (solo il primo valore di xmm1)
+    movss [edx + 4], xmm3
+    movss [edx + 8], xmm4
+    movss [edx + 12], xmm5
+
+
+  ; ------------------------------------------------------------
                 ; Sequenza di uscita dalla funzione
                 ; ------------------------------------------------------------
 
