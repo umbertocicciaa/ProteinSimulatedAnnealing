@@ -321,12 +321,6 @@ void sum2(VECTOR v1, VECTOR v2, VECTOR res){
 }
 
 extern void euclidean_dist_sse(VECTOR v1, VECTOR v2, type* res);
-//extern void prodotto_scalare(VECTOR v1, VECTOR v2, type* res);
-
-/*void norm(VECTOR v, type* res){
-	normalize(v, res);
-    *res = sqrtf(*res);
-}*/
 
 void prodotto_vettore_scalare(VECTOR v, type s){
 	for(int i=0;i<4;i++){
@@ -344,9 +338,8 @@ void prodotto_scalare2(VECTOR v1, VECTOR v2, type* res){
 
 
 void prodotto_vettore_matrice2(VECTOR v, REAL_MATRIX m, VECTOR res){
-    // Esegui il prodotto tra il vettore e la matrice
-    for (int i = 0; i < 3; i++) { // Itera sulle colonne della matrice
-        for (int j = 0; j < 3; j++) { // Itera sulle righe della matrice
+    for (int i = 0; i < 3; i++) { 
+        for (int j = 0; j < 3; j++) { 
             res[i] += v[j] * m[j][i];
         }
     }
@@ -358,7 +351,6 @@ void mul2(VECTOR v1, VECTOR v2){
 	}
 }
 
-// Funzioni per approssimazioni polinomiali di coseno e seno
 type approx_cos(type x) {
     type x2 = x * x;
     return 1 - (x2 / 2.0f) + (x2 * x2 / 24.0f) - (x2 * x2 * x2 / 720.0f);
@@ -372,14 +364,12 @@ type approx_sin(type x) {
 
 
 void mul_matrix(type* vector, type** matrix, type* result, int n){
-	// Inizializza il risultato a zero
     for (int i = 0; i < n; i++) {
         result[i] = 0.0f;
     }
     
-    // Esegui il prodotto tra il vettore e la matrice
-    for (int i = 0; i < n; i++) { // Itera sulle colonne della matrice
-        for (int j = 0; j < n; j++) { // Itera sulle righe della matrice
+    for (int i = 0; i < n; i++) { 
+        for (int j = 0; j < n; j++) { 
             result[i] += vector[j] * matrix[j][i];
         }
     }
@@ -400,7 +390,6 @@ void rotation(VECTOR axis, type theta, REAL_MATRIX rotation_matrix){
     c=axis[1];
 	d=axis[2];
 
-	// Calcolo dei termini della matrice di rotazione
 	rotation_matrix[0][0] = a * a + b * b - c * c - d * d;
     rotation_matrix[0][1] = 2 * (b * c + a * d);
    	rotation_matrix[0][2] = 2 * (b * d - a * c);
@@ -417,30 +406,26 @@ void rotation(VECTOR axis, type theta, REAL_MATRIX rotation_matrix){
 
 MATRIX backbone(char* s, int n, VECTOR phi, VECTOR psi){
 
-	//distanze atomi in Angstrom
 	type r_ca_n = 1.46;
 	type r_ca_c = 1.52;
 	type r_c_n = 1.33;
 	
-	//angoli atomi in radianti
 	type theta_ca_c_n = 2.028;
 	type theta_c_n_ca = 2.124;
 	type theta_n_ca_c = 1.940;
 	
-	//allocazione matrice coords
 	MATRIX coords = alloc_matrix( n*3, 3);
 	
 	int i, j;
 	
-	//inizializzazione coordinate N primo amminoacido
 	coords[0]=0;
 	coords[1]=0;
 	coords[2]=0;
 
-	//iniziaizzazione coordinate C_alpha primo amminoacido
 	coords[3] = r_ca_n;
 	coords[4] = 0; 
 	coords[5] = 0;
+
 	VECTOR coords_c = alloc_matrix(1, 4);
 	VECTOR coords_c_alpha = alloc_matrix(1, 4);
 	VECTOR coords_n = alloc_matrix(1,4);
@@ -457,13 +442,10 @@ MATRIX backbone(char* s, int n, VECTOR phi, VECTOR psi){
 
 	for(i=0; i<n; i++){
 		
-		int idx=i*3*3; //calcolo indice base amminoacido
+		int idx=i*3*3; 
 		
 		if (i>0) {
 
-			//posiziona N
-		
-			//popolo i vettori
 			coords_c_alpha[0] = coords[(i-1)*3*3+3];
 			coords_c_alpha[1] = coords[(i-1)*3*3+4];
 			coords_c_alpha[2] = coords[(i-1)*3*3+5];
@@ -473,26 +455,19 @@ MATRIX backbone(char* s, int n, VECTOR phi, VECTOR psi){
 			coords_c[1] = coords[(i-1)*3*3+7];
 			coords_c[2] = coords[(i-1)*3*3+8];
 			coords_c[3] = 0;
-			
-			// C-C_alpha
-			//sub(coords_c, coords_c_alpha, v1);
+
 			v1[0] = coords_c[0]-coords_c_alpha[0];
 			v1[1] = coords_c[1]-coords_c_alpha[1];
 			v1[2] = coords_c[2]-coords_c_alpha[2];
 			v1[3] = coords_c[3]-coords_c_alpha[3];
 			
-			//v1/||v1||
-            //normalize_axis(v1);
 			norm = sqrtf(v1[0] * v1[0] + v1[1] * v1[1] + v1[2] * v1[2] + v1[3]*v1[3]);
 			v1[0] = v1[0]/norm;
 			v1[1] = v1[1]/norm;
 			v1[2] = v1[2]/norm;
 			v1[3] = v1[3]/norm;
-
-			//costruzione matrice rotation
 			
 			rotation(v1, theta_c_n_ca, rotation_matrix);
-			
 			
 			v[0]=0;
 			v[1]=r_c_n;
@@ -505,30 +480,20 @@ MATRIX backbone(char* s, int n, VECTOR phi, VECTOR psi){
 
 			prodotto_vettore_matrice2(v, rotation_matrix, newv);
 			
-			//N = C + newv
-			//sum(coords_c, newv, coords_n);
 			coords_n[0] = coords_c[0]+newv[0];
 			coords_n[1] = coords_c[1]+newv[1];
 			coords_n[2] = coords_c[2]+newv[2];
 			coords_n[3] = coords_c[3]+newv[3];
 			
-			//inserisco in coords le coordinate di N
 			coords[idx] = coords_n[0];
 			coords[idx+1] = coords_n[1];
 			coords[idx+2] = coords_n[2];
 
-			//posiziona C_alpha
-			//VECTOR v2 = alloc_matrix(1,4);
-
-			//N - C
-			//sub(coords_n, coords_c, v2);
 			v2[0] = coords_n[0]-coords_c[0];
 			v2[1] = coords_n[1]-coords_c[1];
 			v2[2] = coords_n[2]-coords_c[2];
 			v2[3] = coords_n[3]-coords_c[3];
 			
-            //v2/||v2||
-            //normalize_axis(v2);
 			norm = sqrtf(v2[0] * v2[0] + v2[1] * v2[1] + v2[2] * v2[2] + v2[3]*v2[3]);
 			v2[0] = v2[0]/norm;
 			v2[1] = v2[1]/norm;
@@ -536,7 +501,6 @@ MATRIX backbone(char* s, int n, VECTOR phi, VECTOR psi){
 			v2[3] = v2[3]/norm;
 			
 			rotation(v2, phi[i], rotation_matrix);
-			
 			
 			v_[0]=0;
 			v_[1]=r_ca_n;
@@ -549,19 +513,15 @@ MATRIX backbone(char* s, int n, VECTOR phi, VECTOR psi){
 
 			prodotto_vettore_matrice2(v_, rotation_matrix, newv);
 			
-			//C_alpha = N + newv
-			//sum(coords_n, newv, coords_c_alpha);
 			coords_c_alpha[0] = coords_n[0]+newv[0];
 			coords_c_alpha[1] = coords_n[1]+newv[1];
 			coords_c_alpha[2] = coords_n[2]+newv[2];
 			coords_c_alpha[3] = coords_n[3]+newv[3];
 
-			//inserisco in coords le coordinate di C_alpha
 			coords[idx+3] = coords_c_alpha[0];
 			coords[idx+4] = coords_c_alpha[1];
 			coords[idx+5] = coords_c_alpha[2];
 		}
-		//Posiziona C
 	
 		coords_n[0] = coords[idx];
 		coords_n[1] = coords[idx+1];
@@ -573,14 +533,11 @@ MATRIX backbone(char* s, int n, VECTOR phi, VECTOR psi){
 		coords_c_alpha[2] = coords[idx+5];
 		coords_c_alpha[3] = 0; 
 	
-		//C_alpha - N
-		//sub(coords_c_alpha, coords_n, v3);
 		v3[0] = coords_c_alpha[0] - coords_n[0];
 		v3[1] = coords_c_alpha[1] - coords_n[1];
 		v3[2] = coords_c_alpha[2] - coords_n[2];
 		v3[3] = coords_c_alpha[3] - coords_n[3];
 	
-		//v3/||v3||
 		norm = sqrtf(v3[0] * v3[0] + v3[1] * v3[1] + v3[2] * v3[2] + v3[3]*v3[3]);
 		v3[0] = v3[0]/norm;
 		v3[1] = v3[1]/norm;
@@ -600,12 +557,10 @@ MATRIX backbone(char* s, int n, VECTOR phi, VECTOR psi){
 		
 		prodotto_vettore_matrice2(v, rotation_matrix, newv);
 	
-		//C = C_alpha + newv
 		coords_c[0] = coords_c_alpha[0] +newv[0];
 		coords_c[1] = coords_c_alpha[1] +newv[1];
 		coords_c[2] = coords_c_alpha[2] +newv[2];
 		coords_c[3] = coords_c_alpha[3] +newv[3];
-		//inserisco in coords le coordinate di C
 	
 		coords[idx+6] = coords_c[0];
 		coords[idx+7] = coords_c[1];
@@ -649,13 +604,6 @@ type rama_energy(VECTOR phi, VECTOR psi){
 		
 		}
 	return energy;
-	/*for(i=0; i<n; i++){
-		type alpha_dist = sqrtf((phi[i]-alpha_phi)*(phi[i]-alpha_phi)+((psi[i]-alpha_psi)*(psi[i]-alpha_psi)));
-		type beta_dist = sqrtf((phi[i]-beta_phi)*(phi[i]-beta_phi)+(psi[i]-beta_psi)*(psi[i]-beta_psi));
-		type min = fmin(alpha_dist, beta_dist);
-		energy = energy + 0.5 * min;
-	}
-	return energy;*/
 }
 
 
@@ -671,22 +619,18 @@ type hydrophobic_energy(char* s, int n, MATRIX coords){
 	VECTOR coords_c_alpha_i = alloc_matrix(1,4);
 	VECTOR coords_c_alpha_j = alloc_matrix(1,4);
 
-	//estrapolo coordinate C_alpha
 	for(i=0; i<n ; i++){
 		
-		int idx_i = i*3*3+3; //indirizzo base generico C_alpha_i
+		int idx_i = i*3*3+3;
 	
 		coords_c_alpha_i[0] = coords[idx_i];
 		coords_c_alpha_i[1] = coords[idx_i+1];
 		coords_c_alpha_i[2] = coords[idx_i+2];
 		coords_c_alpha_i[3] = 0;
 
-		
-		
 		for(j=i+1; j<n ; j++){
 
-			int idx_j=j*3*3+3; //indirizzo base generico C_alpha_j
-
+			int idx_j=j*3*3+3; 
 
 			coords_c_alpha_j[0] = coords[idx_j];
 			coords_c_alpha_j[1] = coords[idx_j+1];
@@ -694,7 +638,9 @@ type hydrophobic_energy(char* s, int n, MATRIX coords){
 			coords_c_alpha_j[3] = 0;
 
 			type dist = 0;
+
 			euclidean_dist_sse(coords_c_alpha_i, coords_c_alpha_j, &dist);
+
 			int pos_i = s[i]-65;
             int pos_j = s[j]-65;
 
@@ -712,17 +658,15 @@ type electrostatic_energy(char* s, int n, MATRIX coords){
 		VECTOR coords_c_alpha_i = alloc_matrix(1,4);
 		VECTOR coords_c_alpha_j = alloc_matrix(1,4);
 
-        //estrapolo coordinate C_alpha
         for(i=0; i<n ; i++){
 
-			int idx_i = i*3*3+3; //indirizzo base generico C_alpha_i
+			int idx_i = i*3*3+3;
 	
 			coords_c_alpha_i[0] = coords[idx_i];
 			coords_c_alpha_i[1] = coords[idx_i+1];
 			coords_c_alpha_i[2] = coords[idx_i+2];
 			coords_c_alpha_i[3] = 0;
 
-                
 			for(j=i+1; j<n ; j++){
 			
 				int idx_j = j*3*3+3;
@@ -752,13 +696,11 @@ type packing_energy(char* s, int n, MATRIX coords){
 		VECTOR coords_c_alpha_i = alloc_matrix(1,4);
 		VECTOR coords_c_alpha_j = alloc_matrix(1,4);
 
-
-        //estrapolo coordinate C_alpha_i e C_alpha_j
         for(i=0; i<n ; i++){
             type density = 0;
             int pos_i = s[i]-65;
 
-            int idx_i = i*3*3+3; //indirizzo base generico C_alpha_i
+            int idx_i = i*3*3+3; 
                     
             coords_c_alpha_i[0] = coords[idx_i];
 			coords_c_alpha_i[1] = coords[idx_i+1];
@@ -767,9 +709,8 @@ type packing_energy(char* s, int n, MATRIX coords){
                 
 		    for(j=0; j<n ; j++){
 
-                int idx_j=j*3*3+3; //indirizzo base generico C_alpha_j
+                int idx_j=j*3*3+3; 
 		
-	     		
                 coords_c_alpha_j[0] = coords[idx_j];
 				coords_c_alpha_j[1] = coords[idx_j+1];
 				coords_c_alpha_j[2] = coords[idx_j+2];
@@ -791,33 +732,30 @@ type packing_energy(char* s, int n, MATRIX coords){
 type energy(char* s, int n, VECTOR phi, VECTOR psi){
         MATRIX coords = backbone(s, n, phi, psi);
 
-        //calcolo delle componenti energetiche
         type rama = rama_energy(phi, psi);
         type hydro = hydrophobic_energy(s,n, coords);
         type elec = electrostatic_energy(s,n, coords);
         type pack = packing_energy(s,n, coords);
 
-	VECTOR v1 = alloc_matrix(1,4);
-	//popolo vettore componenti energetiche
-	v1[0] = rama; v1[1] = hydro; v1[2] = elec; v1[3] = pack;
+		VECTOR v1 = alloc_matrix(1,4);
 
-        //pesi per i diversi contributi
+		v1[0] = rama; v1[1] = hydro; v1[2] = elec; v1[3] = pack;
+
         type w_rama = 1.0;
         type w_hydro = 0.5;
         type w_elec = 0.2;
         type w_pack = 0.3;
 
-	VECTOR v2 = alloc_matrix(1, 4);
-	//popolo vettore dei pesi
+		VECTOR v2 = alloc_matrix(1, 4);
+
        	v2[0] = w_rama; v2[1] = w_hydro; v2[2] = w_elec; v2[3] = w_pack;
 	
-        //energia totale = w_rama*rama + w_hydro*hydro + w_elec*elec + w_pack*pack; 
         mul2(v1, v2);
 		type total=0;
-	for(int i=0; i<4 ; i++) total+=v1[i];
+		for(int i=0; i<4 ; i++) 
+			total+=v1[i];
 
-	//printf("rama:%f, hydro:%f, elec:%f, pack:%f\n totale:%f\n", rama, hydro, elec, pack, total);
-	return total;
+		return total;
 }
 
 
@@ -825,55 +763,40 @@ void pst(params* input){
 	// --------------------------------------------------------------
 	// Codificare qui l'algoritmo di Predizione struttura terziaria
 	// --------------------------------------------------------------
-
-	
 	type E = energy(input->seq,input->N, input->phi, input->psi);
 	type T = input->to;
 
 	int t=0;
 	printf("Energia iniziale:%f\n",E);
-	//exit(0);
 
 	while(T > 0){
-
-		//genera un vicino della soluzione corrente
 		unsigned int seed = input->sd;
-		int i = (int) (random()*input->N); //prova anche altra formula col seed!
-		//calcola variazioni casuali
+		int i = (int) (random()*input->N); 
+
 		type theta_phi = (random()*2*M_PI)-M_PI;
 		type theta_psi = (random()*2*M_PI)-M_PI;
 
-		//aggiorna i valori degli angoli
 		input->phi[i] = input->phi[i] + theta_phi;
 		input->psi[i] = input->psi[i] + theta_psi;
 
-		//calcola la variazione dell'energia
 		type new_E = energy(input->seq,input->N, input->phi, input->psi);
 		type delta_E = new_E - E;
-		//printf("energy = %f\n", new_E);
+
 		if(delta_E <= 0){
-			//la configurazione è migliorata, la sostituisco a quella vecchia
 			E = new_E;
 		}else {
-			//calcola la probabilità di accettazione
 			type P = exp(-delta_E / (input->k * T));
 			type r = (type) rand() / RAND_MAX; 
 
 			if(r<=P){
-				//accetta la nuova configurazione
 				E = new_E;
 			}else{
-				//rifiuta la configurazione ripristina i valori per psi e phi
 				input->phi[i] = input->phi[i] - theta_phi;
 				input->psi[i] = input->psi[i] - theta_psi;
 			}
 		}
-		//aggiorna la temperatura
 		t = t+1;
 		T = input->to - sqrt((input->alpha)*t);
-		/*printf("energy <%d>: %f\n ",t, E );
-		if(t==10) exit(0);*/
-		
 	}
 	input->e=E;
 
