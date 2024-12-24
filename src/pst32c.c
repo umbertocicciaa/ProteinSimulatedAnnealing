@@ -78,6 +78,8 @@ typedef struct {
 } params;
 
 
+extern void euclidean_dist_sse(VECTOR v1, VECTOR v2, type* res);
+
 /*
 * 
 *	Le funzioni sono state scritte assumento che le matrici siano memorizzate 
@@ -289,8 +291,6 @@ void div_scalare(VECTOR v, type s){
 	}
 }
 
-
-extern void euclidean_dist_sse(VECTOR v1, VECTOR v2, type* res);
 
 void prodotto_vettore_scalare(VECTOR v, type s){
 	for(int i=0;i<4;i++){
