@@ -94,10 +94,7 @@ typedef struct {
 */
 
 void* get_block(int size, int elements) {  
-    if (size <= 0 || elements <= 0 || size > SIZE_MAX / elements) {
-        return NULL; // Dimensioni non valide o overflow
-    }
-    return _mm_malloc(elements * size, 16); 
+    return _mm_malloc(elements * size, 32); 
 }
 
 
