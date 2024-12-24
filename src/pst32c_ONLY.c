@@ -51,7 +51,6 @@
 
 #define	type		float
 #define	MATRIX		type*
-#define REAL_MATRIX	type**
 #define	VECTOR		type*
 
 #define random() (((type) rand())/RAND_MAX)
@@ -97,29 +96,13 @@ void* get_block(int size, int elements) {
     if (size <= 0 || elements <= 0 || size > SIZE_MAX / elements) {
         return NULL; // Dimensioni non valide o overflow
     }
-    return _mm_malloc(elements * size, 16); 
+    return _mm_malloc(elements * size, 32); 
 }
-extern void prova(params* input);
 
 void free_block(void* p) { 
 	_mm_free(p);
 }
 
-REAL_MATRIX alloc_real_matrix(int n, int m){
-	type** mat; 
-	int i, k;
-
-	mat= (type**) _mm_malloc(n*sizeof(type*),16);
-	
-	for(i=0; i<n; i++){
-		mat[i]=(type*) _mm_malloc(m*sizeof(type),16);
-		
-		if(mat[i]==NULL){
-			for(k=0; k<i; k++){ free(mat[k]); }
-		}
-	}
-	return mat;
-}
 
 MATRIX alloc_matrix(int rows, int cols) {
 	return (MATRIX) get_block(sizeof(type),rows*cols);
@@ -300,13 +283,8 @@ void gen_rnd_mat(VECTOR v, int N){
 	}
 }
 
-void sub(VECTOR v1, VECTOR v2, VECTOR res){	
-    	for(int i=0;i< 4; i++){
-          	res[i]=v1[i]-v2[i];
-	}
-}
 
-void div_scalareC(VECTOR v, type s){
+void div_scalare(VECTOR v, type s){
 	if(s==0) s=1;
     for(int i=0;i<3; i++){
         v[i]=v[i]/s;
@@ -335,13 +313,13 @@ void prodotto_scalare(VECTOR v1, VECTOR v2, type* res){
 }
 
 
-void prodotto_vettore_matrice(VECTOR v, REAL_MATRIX m, VECTOR res){
-
-    for (int i = 0; i < 3; i++) { 
-        for (int j = 0; j < 3; j++) { 
-            res[i] += v[j] * m[j][i];
-        }
-    }
+void prodotto_vettore_matrice(VECTOR v, VECTOR m, VECTOR res) {
+	for (int i = 0; i < 3; i++) {
+		res[i] = 0;
+		for (int j = 0; j < 3; j++) {
+			res[i] += v[j] * m[i * 3 + j];
+		}
+	}
 }
 
 void mul(VECTOR v1, VECTOR v2){
@@ -360,37 +338,13 @@ type approx_sin(type x) {
     return x - (x * x2 / 6.0f) + (x * x2 * x2 / 120.0f) - (x * x2 * x2 * x2 / 5040.0f);
 }
 
-void normalize_axis(VECTOR axis) {
 
-    type norm = axis[0] * axis[0] + axis[1] * axis[1] + axis[2] * axis[2] + axis[3]*axis[3];
-    norm = sqrtf(norm); 
-
-    axis[0] /= norm;
-    axis[1] /= norm;
-    axis[2] /= norm;
-    axis[3] /= norm;
-}
-
-
-void mul_matrix(type* vector, type** matrix, type* result, int n){
-    for (int i = 0; i < n; i++) {
-        result[i] = 0.0f;
-    }
-
-    for (int i = 0; i < n; i++) { 
-        for (int j = 0; j < n; j++) { 
-            result[i] += vector[j] * matrix[j][i];
-        }
-    }
-}
-
-
-void rotation(VECTOR axis, type theta, REAL_MATRIX rotation_matrix){
+void rotation(VECTOR axis, type theta, VECTOR rotation_matrix){
 	type res;
 	type a, b, c, d;
 	prodotto_scalare(axis, axis, &res);
 
-	div_scalareC(axis, res);
+	div_scalare(axis, res);
 	prodotto_vettore_scalare(axis, approx_sin(theta / 2.0f));
 	prodotto_vettore_scalare(axis, -1);
 
@@ -399,17 +353,17 @@ void rotation(VECTOR axis, type theta, REAL_MATRIX rotation_matrix){
     c=axis[1];
 	d=axis[2];
 
-	rotation_matrix[0][0] = a * a + b * b - c * c - d * d;
-    rotation_matrix[0][1] = 2 * (b * c + a * d);
-   	rotation_matrix[0][2] = 2 * (b * d - a * c);
+	rotation_matrix[0]= a * a + b * b - c * c - d * d;
+    rotation_matrix[1] = 2 * (b * c + a * d);
+   	rotation_matrix[2] = 2 * (b * d - a * c);
 
-   	rotation_matrix[1][0] = 2 * (b * c - a * d);
-	rotation_matrix[1][1] = a * a + c * c - b * b - d * d;
-   	rotation_matrix[1][2] = 2 * (c * d + a * b);
+   	rotation_matrix[3] = 2 * (b * c - a * d);
+	rotation_matrix[4] = a * a + c * c - b * b - d * d;
+   	rotation_matrix[5] = 2 * (c * d + a * b);
 
-  	rotation_matrix[2][0] = 2 * (b * d + a * c);
-	rotation_matrix[2][1] = 2 * (c * d - a * b);
-	rotation_matrix[2][2] = a * a + d * d - b * b - c * c;
+  	rotation_matrix[6] = 2 * (b * d + a * c);
+	rotation_matrix[7] = 2 * (c * d - a * b);
+	rotation_matrix[8] = a * a + d * d - b * b - c * c;
 }
 
 
@@ -440,7 +394,7 @@ MATRIX backbone(char* s, int n, VECTOR phi, VECTOR psi){
 	VECTOR v2 = alloc_matrix(1,4);
 	VECTOR v3 = alloc_matrix(1,4);
 
-	REAL_MATRIX rotation_matrix = alloc_real_matrix(3,3);
+	VECTOR rotation_matrix = alloc_matrix(1,9);
 	VECTOR v = alloc_matrix(1,3);
 	VECTOR v_ = alloc_matrix(1,3);
 	VECTOR newv = alloc_matrix(1,4);
