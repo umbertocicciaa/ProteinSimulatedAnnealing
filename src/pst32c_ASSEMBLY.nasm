@@ -110,29 +110,21 @@ msg2	db	'e:',32,0
 		MOV EBX, [EBP+B]
 		MOV ECX, [EBP+C]
 		
-		; Carica i valori di v1 (x1, y1, z1) in un registro SSE
-		MOVAPS   XMM0, [EAX]           ; xmm0 = v1 (x1, y1, z1, 0)
+		MOVAPS   XMM0, [EAX]           
+		MOVAPS   XMM1, [EBX]           
 		
-		; Carica i valori di v2 (x2, y2, z2) in un altro registro SSE
-		MOVAPS   XMM1, [EBX]           ; xmm1 = v2 (x2, y2, z2, 0)
+		SUBPS XMM1, XMM0
 		
-		; Calcola le differenze (x2 - x1), (y2 - y1), (z2 - z1)
-		SUBPS XMM1, XMM0          ; xmm1 = v2 - v1 
-		
-		; Calcola il quadrato delle differenze
-		MULPS XMM1, XMM1         ; xmm1 = (x2-x1)^2, (y2-y1)^2, (z2-z1)^2, 0
+		MULPS XMM1, XMM1      
 		MOVSS [e], XMM1
 		
-		; Somma le differenze quadrate: (x2-x1)^2 + (y2-y1)^2 + (z2-z1)^2
-		HADDPS XMM1, XMM1          ; xmm1 = ((x2-x1)^2 + (y2-y1)^2), (z2-z1)^2, 0, 0
-		HADDPS XMM1, XMM1          ; xmm1 = ((x2-x1)^2 + (y2-y1)^2 + (z2-z1)^2), 0, 0, 0
+		HADDPS XMM1, XMM1         
+		HADDPS XMM1, XMM1         
 		MOVSS [e], XMM1
 
-		; Calcola la radice quadrata
-		SQRTPS XMM1,XMM1          ; xmm1 = sqrt(xmm1)
+		SQRTPS XMM1,XMM1        
 		MOVSS [e], XMM1
 		
-		; Salva il risultato (la distanza)
 		MOVSS [ECX], XMM1
 		MOVSS [e], XMM1
 
