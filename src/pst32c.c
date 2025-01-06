@@ -289,6 +289,10 @@ void gen_rnd_mat(VECTOR v, int N){
 	}
 }
 
+type euclidean_dist(VECTOR v1, VECTOR v2, type* res){
+    *res = sqrtf((v2[0]-v1[0])*(v2[0]-v1[0]) + (v2[1]-v1[1])*(v2[1]-v1[1]) + (v2[2]-v1[2])*(v2[2]-v1[2]));
+}
+
 void div_scalare(VECTOR v, type s){
 	if(s==0) s=1;
     for(int i=0;i<3; i++){
