@@ -37,11 +37,11 @@ section .data
     beta_psi dd 113.0
     half dd 0.5
 
-section .bss			; Sezione contenente dati non inizializzati
+section .bss			
 	alignb 16
 	e		resd		1
 
-section .text			; Sezione contenente il codice macchina
+section .text			
 
 
 extern get_block
@@ -66,36 +66,29 @@ extern free_block
 global rama_energy_assembly
 
 rama_energy_assembly:
-    ; Prologo
     push ebp
     mov ebp, esp
     push ebx
     push esi
     push edi
 
-    ; Carica i parametri
-    mov eax, [ebp + 8]  ; phi
-    mov ebx, [ebp + 12] ; psi
-    mov ecx, [ebp + 16] ; res
+    mov eax, [ebp + 8]  
+    mov ebx, [ebp + 12] 
+    mov ecx, [ebp + 16] 
 
-    ; Inizializza i registri
-    xorps xmm0, xmm0    ; energy = 0
+    xorps xmm0, xmm0    
 
-    ; Carica i valori costanti
     movss xmm1, [alpha_phi]
     movss xmm2, [alpha_psi]
     movss xmm3, [beta_phi]
     movss xmm4, [beta_psi]
     movss xmm5, [half]
 
-    ; Iterazione sui valori di phi e psi
     mov esi, 0
     .loop:
-        ; Carica i valori di phi e psi
         movss xmm6, [eax + esi * 4]
         movss xmm7, [ebx + esi * 4]
 
-        ; Calcola le differenze per alpha
         movaps xmm0, xmm6
         subss xmm0, xmm1
         mulss xmm0, xmm0
@@ -107,7 +100,6 @@ rama_energy_assembly:
         addss xmm0, xmm2
         sqrtss xmm0, xmm0
 
-        ; Calcola le differenze per beta
         movaps xmm2, xmm6
         subss xmm2, xmm3
         mulss xmm2, xmm2
@@ -119,22 +111,17 @@ rama_energy_assembly:
         addss xmm2, xmm3
         sqrtss xmm2, xmm2
 
-        ; Trova il minimo tra le distanze
         minss xmm0, xmm2
 
-        ; Moltiplica per 0.5 e somma all'energia totale
         mulss xmm0, xmm5
         addss xmm0, xmm0
 
-        ; Incrementa l'indice
         add esi, 1
         cmp esi, 256
         jl .loop
 
-    ; Salva il risultato
     movss [ecx], xmm0
 
-    ; Epilogo
     pop edi
     pop esi
     pop ebx
