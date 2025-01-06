@@ -286,46 +286,41 @@ void gen_rnd_mat(VECTOR v, int N){
 	}
 }
 
+
 type euclidean_dist(VECTOR v1, VECTOR v2, type* res){
     *res = sqrtf((v2[0]-v1[0])*(v2[0]-v1[0]) + (v2[1]-v1[1])*(v2[1]-v1[1]) + (v2[2]-v1[2])*(v2[2]-v1[2]));
 }
 
 void div_scalare(VECTOR v, type s){
-	if(s==0) s=1;
-    for(int i=0;i<3; i++){
-        v[i]=v[i]/s;
-	}
+	if(s==0) 
+		s=1;
+	v[0] = v[0] / s;
+	v[1] = v[1] / s;
+	v[2] = v[2] / s;
 }
 
-
 void prodotto_vettore_scalare(VECTOR v, type s){
-	for(int i=0;i<4;i++){
-		v[i]=v[i] * s;
-	}
+	v[0] = v[0] * s;
+	v[1] = v[1] * s;
+	v[2] = v[2] * s;
+	v[3] = v[3] * s;
 }
 
 void prodotto_scalare(VECTOR v1, VECTOR v2, type* res){
-	type prodotto = 0;
-	for(int i=0; i<3;i++){
-		prodotto += v1[i]*v2[i];
-	}
-	*res = prodotto;
+	*res = v1[0] * v2[0] + v1[1] * v2[1] + v1[2] * v2[2];
 }
 
-
 void prodotto_vettore_matrice(VECTOR v, VECTOR m, VECTOR res) {
-	for (int i = 0; i < 3; i++) {
-		res[i] = 0;
-		for (int j = 0; j < 3; j++) {
-			res[i] += v[j] * m[i * 3 + j];
-		}
-	}
+	res[0] = v[0] * m[0] + v[1] * m[1] + v[2] * m[2];
+	res[1] = v[0] * m[3] + v[1] * m[4] + v[2] * m[5];
+	res[2] = v[0] * m[6] + v[1] * m[7] + v[2] * m[8];
 }
 
 void mul(VECTOR v1, VECTOR v2){
-	for(int i=0;i<4;i++){
-		v1[i] = v1[i] * v2[i];
-	}
+	v1[0] = v1[0] * v2[0];
+	v1[1] = v1[1] * v2[1];
+	v1[2] = v1[2] * v2[2];
+	v1[3] = v1[3] * v2[3];
 }
 
 type approx_cos(type x) {
