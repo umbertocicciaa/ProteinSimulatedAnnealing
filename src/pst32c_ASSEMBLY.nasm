@@ -62,52 +62,6 @@ extern free_block
 %endmacro
 
 
-global euclidean_dist_sse
-
-A equ 8
-B equ 12
-C equ 16
-
-msg2	db	'e:',32,0
-	euclidean_dist_sse:
-
-		push		ebp		
-		mov		ebp, esp	
-		push		ebx
-		push		esi
-		push		edi
-
-		MOV EAX, [EBP+A]
-		MOV EBX, [EBP+B]
-		MOV ECX, [EBP+C]
-		
-		MOVAPS   XMM0, [EAX]           
-		MOVAPS   XMM1, [EBX]           
-		
-		SUBPS XMM1, XMM0
-		
-		MULPS XMM1, XMM1      
-		MOVSS [e], XMM1
-		
-		HADDPS XMM1, XMM1         
-		HADDPS XMM1, XMM1         
-		MOVSS [e], XMM1
-
-		SQRTPS XMM1,XMM1        
-		MOVSS [e], XMM1
-		
-		MOVSS [ECX], XMM1
-		MOVSS [e], XMM1
-
-		pop	edi		
-		pop	esi
-		pop	ebx
-		mov	esp, ebp	
-		pop	ebp		
-		ret			
-
-
-
 global rama_energy_assembly
 
 rama_energy_assembly:

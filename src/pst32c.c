@@ -78,7 +78,6 @@ typedef struct {
 } params;
 
 
-extern void euclidean_dist_sse(VECTOR v1, VECTOR v2, type* res);
 extern void rama_energy_assembly(VECTOR phi, VECTOR psi, type* rama);
 
 //extern void hydrophobic_energy_assembly(s,n, coords);
@@ -600,7 +599,7 @@ type hydrophobic_energy(char* s, int n, MATRIX coords){
 
 			type dist = 0;
 
-			euclidean_dist_sse(coords_c_alpha_i, coords_c_alpha_j, &dist);
+			euclidean_dist(coords_c_alpha_i, coords_c_alpha_j, &dist);
 
 			int pos_i = s[i]-65;
             int pos_j = s[j]-65;
@@ -638,7 +637,8 @@ type electrostatic_energy(char* s, int n, MATRIX coords){
 				coords_c_alpha_j[3] = 0;
 				type dist = 0;
 
-				euclidean_dist_sse(coords_c_alpha_i, coords_c_alpha_j, &dist);
+				euclidean_dist(coords_c_alpha_i, coords_c_alpha_j, &dist);
+
 				int pos_i = s[i]-65;
 				int pos_j = s[j]-65;
 
@@ -678,7 +678,9 @@ type packing_energy(char* s, int n, MATRIX coords){
 				coords_c_alpha_j[3] = 0;
                        
 		       	type dist = 0;
-				euclidean_dist_sse(coords_c_alpha_i, coords_c_alpha_j, &dist);
+				
+				euclidean_dist(coords_c_alpha_i, coords_c_alpha_j, &dist);
+
                 int pos_j = s[j]-65;
 
                 if(i!=j && dist < 10.0)
