@@ -30,7 +30,11 @@
 %include "sseutils32.nasm"
 
 section .data			; Sezione contenente dati inizializzati
-    
+    alpha_phi dd -57.8
+    alpha_psi dd -47.0
+    beta_phi dd -119.0
+    beta_psi dd 113.0
+    half dd 0.5
 
 section .bss			; Sezione contenente dati non inizializzati
 	alignb 16
@@ -38,24 +42,6 @@ section .bss			; Sezione contenente dati non inizializzati
 
 section .text			; Sezione contenente il codice macchina
 
-
-; ----------------------------------------------------------
-; macro per l'allocazione dinamica della memoria
-;
-;	getmem	<size>,<elements>
-;
-; alloca un'area di memoria di <size>*<elements> bytes
-; (allineata a 16 bytes) e restituisce in EAX
-; l'indirizzo del primo bytes del blocco allocato
-; (funziona mediante chiamata a funzione C, per cui
-; altri registri potrebbero essere modificati)
-;
-;	fremem	<address>
-;
-; dealloca l'area di memoria che ha inizio dall'indirizzo
-; <address> precedentemente allocata con getmem
-; (funziona mediante chiamata a funzione C, per cui
-; altri registri potrebbero essere modificati)
 
 extern get_block
 extern free_block
@@ -75,10 +61,6 @@ extern free_block
 	add	esp, 4
 %endmacro
 
-; ------------------------------------------------------------
-; Funzioni
-; ------------------------------------------------------------
-
 
 global euclidean_dist_sse
 
@@ -87,24 +69,13 @@ B equ 12
 C equ 16
 
 msg2	db	'e:',32,0
-
-
 	euclidean_dist_sse:
 
-		; ------------------------------------------------------------
-		; Sequenza di ingresso nella funzione
-		; ------------------------------------------------------------
-		push		ebp		; salva il Base Pointer
-		mov		ebp, esp	; il Base Pointer punta al Record di Attivazione corrente
-		push		ebx		; salva i registri da preservare
+		push		ebp		
+		mov		ebp, esp	
+		push		ebx
 		push		esi
 		push		edi
-		; ------------------------------------------------------------
-		; legge i parametri dal Record di Attivazione corrente
-		; ------------------------------------------------------------
-
-		; elaborazione
-
 
 		MOV EAX, [EBP+A]
 		MOV EBX, [EBP+B]
@@ -128,15 +99,90 @@ msg2	db	'e:',32,0
 		MOVSS [ECX], XMM1
 		MOVSS [e], XMM1
 
-		; ------------------------------------------------------------
-		; Sequenza di uscita dalla funzione
-		; ------------------------------------------------------------
-
-
-		pop	edi		; ripristina i registri da preservare
+		pop	edi		
 		pop	esi
 		pop	ebx
-		mov	esp, ebp	; ripristina lo Stack Pointer
-		pop	ebp		; ripristina il Base Pointer
-		ret			; torna alla funzione C chiamante
- 
+		mov	esp, ebp	
+		pop	ebp		
+		ret			
+
+
+
+global rama_energy_assembly
+
+rama_energy_assembly:
+    ; Prologo
+    push ebp
+    mov ebp, esp
+    push ebx
+    push esi
+    push edi
+
+    ; Carica i parametri
+    mov eax, [ebp + 8]  ; phi
+    mov ebx, [ebp + 12] ; psi
+    mov ecx, [ebp + 16] ; res
+
+    ; Inizializza i registri
+    xorps xmm0, xmm0    ; energy = 0
+
+    ; Carica i valori costanti
+    movss xmm1, [alpha_phi]
+    movss xmm2, [alpha_psi]
+    movss xmm3, [beta_phi]
+    movss xmm4, [beta_psi]
+    movss xmm5, [half]
+
+    ; Iterazione sui valori di phi e psi
+    mov esi, 0
+    .loop:
+        ; Carica i valori di phi e psi
+        movss xmm6, [eax + esi * 4]
+        movss xmm7, [ebx + esi * 4]
+
+        ; Calcola le differenze per alpha
+        movaps xmm0, xmm6
+        subss xmm0, xmm1
+        mulss xmm0, xmm0
+
+        movaps xmm2, xmm7
+        subss xmm2, xmm2
+        mulss xmm2, xmm2
+
+        addss xmm0, xmm2
+        sqrtss xmm0, xmm0
+
+        ; Calcola le differenze per beta
+        movaps xmm2, xmm6
+        subss xmm2, xmm3
+        mulss xmm2, xmm2
+
+        movaps xmm3, xmm7
+        subss xmm3, xmm4
+        mulss xmm3, xmm3
+
+        addss xmm2, xmm3
+        sqrtss xmm2, xmm2
+
+        ; Trova il minimo tra le distanze
+        minss xmm0, xmm2
+
+        ; Moltiplica per 0.5 e somma all'energia totale
+        mulss xmm0, xmm5
+        addss xmm0, xmm0
+
+        ; Incrementa l'indice
+        add esi, 1
+        cmp esi, 256
+        jl .loop
+
+    ; Salva il risultato
+    movss [ecx], xmm0
+
+    ; Epilogo
+    pop edi
+    pop esi
+    pop ebx
+    mov esp, ebp
+    pop ebp
+    ret

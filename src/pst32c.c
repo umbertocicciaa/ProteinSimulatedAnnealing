@@ -79,6 +79,11 @@ typedef struct {
 
 
 extern void euclidean_dist_sse(VECTOR v1, VECTOR v2, type* res);
+extern void rama_energy_assembly(VECTOR phi, VECTOR psi, type* rama);
+
+//extern void hydrophobic_energy_assembly(s,n, coords);
+//extern void electrostatic_energy_assembly(s,n, coords);
+//extern void packing_energy_assembly(s,n, coords);
 
 /*
 * 
@@ -95,7 +100,7 @@ extern void euclidean_dist_sse(VECTOR v1, VECTOR v2, type* res);
 */
 
 void* get_block(int size, int elements) {  
-    return _mm_malloc(elements * size, 32); 
+    return _mm_malloc(elements * size, 16); 
 }
 
 
@@ -537,29 +542,30 @@ type rama_energy(VECTOR phi, VECTOR psi){
 
 	int i;
     
-		type min, alpha_dist, beta_dist;
-        for(i=0; i<n; i+=4){
-			alpha_dist = sqrtf((phi[i]-alpha_phi)*(phi[i]-alpha_phi)+((psi[i]-alpha_psi)*(psi[i]-alpha_psi)));
-			beta_dist = sqrtf((phi[i]-beta_phi)*(phi[i]-beta_phi)+(psi[i]-beta_psi)*(psi[i]-beta_psi));
-			min = fmin(alpha_dist, beta_dist);
-			energy = energy + 0.5 * min;
+	type min, alpha_dist, beta_dist;
 
-			alpha_dist = sqrtf((phi[i+1]-alpha_phi)*(phi[i+1]-alpha_phi)+((psi[i+1]-alpha_psi)*(psi[i+1]-alpha_psi)));
-			beta_dist = sqrtf((phi[i+1]-beta_phi)*(phi[i+1]-beta_phi)+(psi[i+1]-beta_psi)*(psi[i+1]-beta_psi));
-			min = fmin(alpha_dist, beta_dist);
-			energy = energy + 0.5 * min;
+    for(i=0; i<n; i+=4){
+		alpha_dist = sqrtf((phi[i]-alpha_phi)*(phi[i]-alpha_phi)+((psi[i]-alpha_psi)*(psi[i]-alpha_psi)));
+		beta_dist = sqrtf((phi[i]-beta_phi)*(phi[i]-beta_phi)+(psi[i]-beta_psi)*(psi[i]-beta_psi));
+		min = fmin(alpha_dist, beta_dist);
+		energy = energy + 0.5 * min;
 
-			alpha_dist = sqrtf((phi[i+2]-alpha_phi)*(phi[i+2]-alpha_phi)+((psi[i+2]-alpha_psi)*(psi[i+2]-alpha_psi)));
-			beta_dist = sqrtf((phi[i+2]-beta_phi)*(phi[i+2]-beta_phi)+(psi[i+2]-beta_psi)*(psi[i+2]-beta_psi));
-			min = fmin(alpha_dist, beta_dist);
-			energy = energy + 0.5 * min;
+		alpha_dist = sqrtf((phi[i+1]-alpha_phi)*(phi[i+1]-alpha_phi)+((psi[i+1]-alpha_psi)*(psi[i+1]-alpha_psi)));
+		beta_dist = sqrtf((phi[i+1]-beta_phi)*(phi[i+1]-beta_phi)+(psi[i+1]-beta_psi)*(psi[i+1]-beta_psi));
+		min = fmin(alpha_dist, beta_dist);
+		energy = energy + 0.5 * min;
 
-			alpha_dist = sqrtf((phi[i+3]-alpha_phi)*(phi[i+3]-alpha_phi)+((psi[i+3]-alpha_psi)*(psi[i+3]-alpha_psi)));
-			beta_dist = sqrtf((phi[i+3]-beta_phi)*(phi[i+3]-beta_phi)+(psi[i+3]-beta_psi)*(psi[i+3]-beta_psi));
-			min = fmin(alpha_dist, beta_dist);
-			energy = energy + 0.5 * min;
+		alpha_dist = sqrtf((phi[i+2]-alpha_phi)*(phi[i+2]-alpha_phi)+((psi[i+2]-alpha_psi)*(psi[i+2]-alpha_psi)));
+		beta_dist = sqrtf((phi[i+2]-beta_phi)*(phi[i+2]-beta_phi)+(psi[i+2]-beta_psi)*(psi[i+2]-beta_psi));
+		min = fmin(alpha_dist, beta_dist);
+		energy = energy + 0.5 * min;
+
+		alpha_dist = sqrtf((phi[i+3]-alpha_phi)*(phi[i+3]-alpha_phi)+((psi[i+3]-alpha_psi)*(psi[i+3]-alpha_psi)));
+		beta_dist = sqrtf((phi[i+3]-beta_phi)*(phi[i+3]-beta_phi)+(psi[i+3]-beta_psi)*(psi[i+3]-beta_psi));
+		min = fmin(alpha_dist, beta_dist);
+		energy = energy + 0.5 * min;
 		
-		}
+	}
 	return energy;
 }
 
@@ -683,7 +689,15 @@ type packing_energy(char* s, int n, MATRIX coords){
 type energy(char* s, int n, VECTOR phi, VECTOR psi){
         MATRIX coords = backbone(s, n, phi, psi);
 
-        type rama = rama_energy(phi, psi);
+		type rama=0;
+		//type hydro=0;
+		//type elec=0;
+		//type pack=0;
+
+		rama_energy_assembly(phi, psi, &rama);
+
+
+        //type rama = rama_energy(phi, psi);
         type hydro = hydrophobic_energy(s,n, coords);
         type elec = electrostatic_energy(s,n, coords);
         type pack = packing_energy(s,n, coords);
@@ -905,10 +919,6 @@ int main(int argc, char** argv) {
 		printf("Dataset file name: '%s'\n", seqfilename);
 		printf("Sequence lenght: %d\n", input->N);
 	}
-
-	// COMMENTARE QUESTA RIGA!
-	//prova(input);
-	//
 
 	//
 	// Predizione struttura terziaria
