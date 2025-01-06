@@ -79,8 +79,6 @@ typedef struct {
 
 
 extern void rama_energy_assembly(VECTOR phi, VECTOR psi, type* rama);
-
-//extern void hydrophobic_energy_assembly(s,n, coords);
 //extern void electrostatic_energy_assembly(s,n, coords);
 //extern void packing_energy_assembly(s,n, coords);
 
@@ -535,44 +533,6 @@ MATRIX backbone(char* s, int n, VECTOR phi, VECTOR psi){
 	return coords;
 }
 
-type rama_energy(VECTOR phi, VECTOR psi){
-	int n = 256;
-	type alpha_phi = -57.8;
-	type alpha_psi = -47.0;
-	type beta_phi = -119.0;
-	type beta_psi = 113.0;
-	type energy = 0;
-
-	int i;
-    
-	type min, alpha_dist, beta_dist;
-
-    for(i=0; i<n; i+=4){
-		alpha_dist = sqrtf((phi[i]-alpha_phi)*(phi[i]-alpha_phi)+((psi[i]-alpha_psi)*(psi[i]-alpha_psi)));
-		beta_dist = sqrtf((phi[i]-beta_phi)*(phi[i]-beta_phi)+(psi[i]-beta_psi)*(psi[i]-beta_psi));
-		min = fmin(alpha_dist, beta_dist);
-		energy = energy + 0.5 * min;
-
-		alpha_dist = sqrtf((phi[i+1]-alpha_phi)*(phi[i+1]-alpha_phi)+((psi[i+1]-alpha_psi)*(psi[i+1]-alpha_psi)));
-		beta_dist = sqrtf((phi[i+1]-beta_phi)*(phi[i+1]-beta_phi)+(psi[i+1]-beta_psi)*(psi[i+1]-beta_psi));
-		min = fmin(alpha_dist, beta_dist);
-		energy = energy + 0.5 * min;
-
-		alpha_dist = sqrtf((phi[i+2]-alpha_phi)*(phi[i+2]-alpha_phi)+((psi[i+2]-alpha_psi)*(psi[i+2]-alpha_psi)));
-		beta_dist = sqrtf((phi[i+2]-beta_phi)*(phi[i+2]-beta_phi)+(psi[i+2]-beta_psi)*(psi[i+2]-beta_psi));
-		min = fmin(alpha_dist, beta_dist);
-		energy = energy + 0.5 * min;
-
-		alpha_dist = sqrtf((phi[i+3]-alpha_phi)*(phi[i+3]-alpha_phi)+((psi[i+3]-alpha_psi)*(psi[i+3]-alpha_psi)));
-		beta_dist = sqrtf((phi[i+3]-beta_phi)*(phi[i+3]-beta_phi)+(psi[i+3]-beta_psi)*(psi[i+3]-beta_psi));
-		min = fmin(alpha_dist, beta_dist);
-		energy = energy + 0.5 * min;
-		
-	}
-	return energy;
-}
-
-
 type hydrophobic_energy(char* s, int n, MATRIX coords){
 	type energy = 0;
 	int i,j,k;
@@ -695,15 +655,9 @@ type packing_energy(char* s, int n, MATRIX coords){
 type energy(char* s, int n, VECTOR phi, VECTOR psi){
         MATRIX coords = backbone(s, n, phi, psi);
 
-		type rama=0;
-		//type hydro=0;
-		//type elec=0;
-		//type pack=0;
-
+		type rama;
 		rama_energy_assembly(phi, psi, &rama);
 
-
-        //type rama = rama_energy(phi, psi);
         type hydro = hydrophobic_energy(s,n, coords);
         type elec = electrostatic_energy(s,n, coords);
         type pack = packing_energy(s,n, coords);

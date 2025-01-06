@@ -29,7 +29,8 @@
 ;
 %include "sseutils32.nasm"
 
-section .data			; Sezione contenente dati inizializzati
+section .data	
+	;rana energy
     alpha_phi dd -57.8
     alpha_psi dd -47.0
     beta_phi dd -119.0
