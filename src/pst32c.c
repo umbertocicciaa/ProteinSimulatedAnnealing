@@ -79,6 +79,8 @@ typedef struct
 } params;
 
 extern void rama_energy_assembly(VECTOR phi, VECTOR psi, type *rama);
+extern void hydrophobic_energy_assembly(char *s, int *n, MATRIX coords, type *result);
+extern electrostatic_energy_assembly(char *s, int *n, MATRIX coords, type *result);
 
 void *get_block(int size, int elements)
 {
@@ -429,45 +431,6 @@ MATRIX backbone(char *s, int n, VECTOR phi, VECTOR psi)
 	return coords;
 }
 
-type hydrophobic_energy(char *s, int n, MATRIX coords)
-{
-	type energy = 0;
-	int i, j, k;
-	VECTOR coords_c_alpha_i = alloc_matrix(1, 4);
-	VECTOR coords_c_alpha_j = alloc_matrix(1, 4);
-
-	for (i = 0; i < n; i++)
-	{
-
-		int idx_i = i * 3 * 3 + 3;
-
-		coords_c_alpha_i[0] = coords[idx_i];
-		coords_c_alpha_i[1] = coords[idx_i + 1];
-		coords_c_alpha_i[2] = coords[idx_i + 2];
-		coords_c_alpha_i[3] = 0;
-
-		for (j = i + 1; j < n; j++)
-		{
-
-			int idx_j = j * 3 * 3 + 3;
-
-			coords_c_alpha_j[0] = coords[idx_j];
-			coords_c_alpha_j[1] = coords[idx_j + 1];
-			coords_c_alpha_j[2] = coords[idx_j + 2];
-			coords_c_alpha_j[3] = 0;
-
-			type dist = sqrtf((coords_c_alpha_j[0] - coords_c_alpha_i[0]) * (coords_c_alpha_j[0] - coords_c_alpha_i[0]) + (coords_c_alpha_j[1] - coords_c_alpha_i[1]) * (coords_c_alpha_j[1] - coords_c_alpha_i[1]) + (coords_c_alpha_j[2] - coords_c_alpha_i[2]) * (coords_c_alpha_j[2] - coords_c_alpha_i[2]));
-
-			int pos_i = s[i] - 65;
-			int pos_j = s[j] - 65;
-
-			if (dist < 10.0)
-				energy = energy + (hydrophobicity[pos_i] * hydrophobicity[pos_j]) / dist;
-		}
-	}
-	return energy;
-}
-
 type electrostatic_energy(char *s, int n, MATRIX coords)
 {
 	type energy = 0;
@@ -548,6 +511,7 @@ type packing_energy(char *s, int n, MATRIX coords)
 	return energy;
 }
 
+
 type energy(char *s, int n, VECTOR phi, VECTOR psi)
 {
 	MATRIX coords = backbone(s, n, phi, psi);
@@ -555,8 +519,15 @@ type energy(char *s, int n, VECTOR phi, VECTOR psi)
 	type rama;
 	rama_energy_assembly(phi, psi, &rama);
 
-	type hydro = hydrophobic_energy(s, n, coords);
+	type hydro;
+	hydrophobic_energy_assembly(s, &n, coords, &hydro);
+    
 	type elec = electrostatic_energy(s, n, coords);
+	
+    //type elec;
+	//electrostatic_energy_assembly(s, &n, coords, &elec);
+	
+	
 	type pack = packing_energy(s, n, coords);
 
 	VECTOR v1 = alloc_matrix(1, 4);
