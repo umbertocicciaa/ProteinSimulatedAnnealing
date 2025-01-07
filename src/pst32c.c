@@ -80,19 +80,6 @@ typedef struct
 
 extern void rama_energy_assembly(VECTOR phi, VECTOR psi, type *rama);
 
-/*
- *
- *	Le funzioni sono state scritte assumento che le matrici siano memorizzate
- * 	mediante un array (float*), in modo da occupare un unico blocco
- * 	di memoria, ma a scelta del candidato possono essere
- * 	memorizzate mediante array di array (float**).
- *
- * 	In entrambi i casi il candidato dovr� inoltre scegliere se memorizzare le
- * 	matrici per righe (row-major order) o per colonne (column major-order).
- *
- * 	L'assunzione corrente � che le matrici siano in row-major order.
- *
- */
 
 void *get_block(int size, int elements)
 {
@@ -124,25 +111,6 @@ void dealloc_matrix(void *mat)
 	free_block(mat);
 }
 
-/*
- *
- * 	load_data
- * 	=========
- *
- *	Legge da file una matrice di N righe
- * 	e M colonne e la memorizza in un array lineare in row-major order
- *
- * 	Codifica del file:
- * 	primi 4 byte: numero di righe (N) --> numero intero
- * 	successivi 4 byte: numero di colonne (M) --> numero intero
- * 	successivi N*M*4 byte: matrix data in row-major order --> numeri floating-point a precisione singola
- *
- *****************************************************************************
- *	Se lo si ritiene opportuno, � possibile cambiare la codifica in memoria
- * 	della matrice.
- *****************************************************************************
- *
- */
 MATRIX load_data(char *filename, int *n, int *k)
 {
 	FILE *fp;
@@ -169,25 +137,6 @@ MATRIX load_data(char *filename, int *n, int *k)
 	return data;
 }
 
-/*
- *
- * 	load_seq
- * 	=========
- *
- *	Legge da file una matrice di N righe
- * 	e M colonne e la memorizza in un array lineare in row-major order
- *
- * 	Codifica del file:
- * 	primi 4 byte: numero di righe (N) --> numero intero
- * 	successivi 4 byte: numero di colonne (M) --> numero intero
- * 	successivi N*M*1 byte: matrix data in row-major order --> charatteri che compongono la stringa
- *
- *****************************************************************************
- *	Se lo si ritiene opportuno, � possibile cambiare la codifica in memoria
- * 	della matrice.
- *****************************************************************************
- *
- */
 char *load_seq(char *filename, int *n, int *k)
 {
 	FILE *fp;
@@ -214,18 +163,6 @@ char *load_seq(char *filename, int *n, int *k)
 	return data;
 }
 
-/*
- * 	save_data
- * 	=========
- *
- *	Salva su file un array lineare in row-major order
- *	come matrice di N righe e M colonne
- *
- * 	Codifica del file:
- * 	primi 4 byte: numero di righe (N) --> numero intero a 32 bit
- * 	successivi 4 byte: numero di colonne (M) --> numero intero a 32 bit
- * 	successivi N*M*4 byte: matrix data in row-major order --> numeri interi o floating-point a precisione singola
- */
 void save_data(char *filename, void *X, int n, int k)
 {
 	FILE *fp;
@@ -251,17 +188,6 @@ void save_data(char *filename, void *X, int n, int k)
 	fclose(fp);
 }
 
-/*
- * 	save_out
- * 	=========
- *
- *	Salva su file un array lineare composto da k elementi.
- *
- * 	Codifica del file:
- * 	primi 4 byte: contenenti l'intero 1 		--> numero intero a 32 bit
- * 	successivi 4 byte: numero di elementi k     --> numero intero a 32 bit
- * 	successivi byte: elementi del vettore 		--> k numero floating-point a precisione singola
- */
 void save_out(char *filename, MATRIX X, int k)
 {
 	FILE *fp;
@@ -277,14 +203,6 @@ void save_out(char *filename, MATRIX X, int k)
 	fclose(fp);
 }
 
-/*
- * 	gen_rnd_mat
- * 	=========
- *
- *	Genera in maniera casuale numeri reali tra -pi e pi
- *	per riempire una struttura dati di dimensione Nx1
- *
- */
 void gen_rnd_mat(VECTOR v, int N)
 {
 	int i;
