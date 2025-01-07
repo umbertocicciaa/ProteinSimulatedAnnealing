@@ -1,2 +1,0 @@
-c + assembly + 32bit : 0.677s
-c: 0.412s
