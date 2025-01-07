@@ -79,8 +79,6 @@ typedef struct
 } params;
 
 extern void rama_energy_assembly(VECTOR phi, VECTOR psi, type *rama);
-// extern void electrostatic_energy_assembly(s,n, coords);
-// extern void packing_energy_assembly(s,n, coords);
 
 /*
  *
