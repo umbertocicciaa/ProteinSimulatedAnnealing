@@ -1,48 +1,3 @@
-gcc -m64 -msse -mavx -O0 -no-pie pst64c_ONLY.c -o pst64_ONLY -lm
- 
-./pst64_ONLY -seq seq_256.ds2 -to 20 -alpha 1 -k 1 -sd 3 -d
- 
-/**************************************************************************************
-*
-* CdL Magistrale in Ingegneria Informatica
-* Corso di Architetture e Programmazione dei Sistemi di Elaborazione - a.a. 2020/21
-*
-* Progetto dell'algoritmo Predizione struttura terziaria proteine 221 231 a
-* in linguaggio assembly x86-64 + SSE
-*
-* F. Angiulli F. Fassetti S. Nisticò, novembre 2024
-*
-**************************************************************************************/
- 
-/*
-*
-* Software necessario per l'esecuzione:
-*
-*    NASM (www.nasm.us)
-*    GCC (gcc.gnu.org)
-*
-* entrambi sono disponibili come pacchetti software
-* installabili mediante il packaging tool del sistema
-* operativo; per esempio, su Ubuntu, mediante i comandi:
-*
-*    sudo apt-get install nasm
-*    sudo apt-get install gcc
-*
-* potrebbe essere necessario installare le seguenti librerie:
-*
-*    sudo apt-get install lib64gcc-4.8-dev (o altra versione)
-*    sudo apt-get install libc6-dev-i386
-*
-* Per generare il file eseguibile:
-*
-* nasm -f elf64 pst64.nasm && gcc -m64 -msse -O0 -no-pie sseutils64.o pst64.o pst64c.c -o pst64c -lm && ./pst64c $pars
-*
-* oppure
-*
-* ./runpst64
-*
-*/
- 
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
@@ -83,27 +38,13 @@ typedef struct {
 } params;
  
  
-/*
-*
-*   Le funzioni sono state scritte assumento che le matrici siano memorizzate
-*   mediante un array (float*), in modo da occupare un unico blocco
-*   di memoria, ma a scelta del candidato possono essere
-*   memorizzate mediante array di array (float**).
-*
-*   In entrambi i casi il candidato dovr� inoltre scegliere se memorizzare le
-*   matrici per righe (row-major order) o per colonne (column major-order).
-*
-*   L'assunzione corrente � che le matrici siano in row-major order.
-*
-*/
- 
 void* get_block(int size, int elements) {  
     if (size <= 0 || elements <= 0 || size > SIZE_MAX / elements) {
         return NULL; // Dimensioni non valide o overflow
     }
     return _mm_malloc(elements * size, 16);
 }
-extern void prova(params* input);
+
  
 void free_block(void* p) {
     _mm_free(p);
@@ -143,26 +84,6 @@ void dealloc_matrix(void* mat) {
 }
  
  
- 
-/*
-*
-*   load_data
-*   =========
-*
-*   Legge da file una matrice di N righe
-*   e M colonne e la memorizza in un array lineare in row-major order
-*
-*   Codifica del file:
-*   primi 4 byte: numero di righe (N) --> numero intero
-*   successivi 4 byte: numero di colonne (M) --> numero intero
-*   successivi N*M*4 byte: matrix data in row-major order --> numeri floating-point a precisione singola
-*
-*****************************************************************************
-*   Se lo si ritiene opportuno, � possibile cambiare la codifica in memoria
-*   della matrice.
-*****************************************************************************
-*
-*/
 MATRIX load_data(char* filename, int *n, int *k) {
     FILE* fp;
     int rows, cols, status, i;
@@ -187,25 +108,6 @@ MATRIX load_data(char* filename, int *n, int *k) {
     return data;
 }
  
-/*
-*
-*   load_seq
-*   =========
-*
-*   Legge da file una matrice di N righe
-*   e M colonne e la memorizza in un array lineare in row-major order
-*
-*   Codifica del file:
-*   primi 4 byte: numero di righe (N) --> numero intero
-*   successivi 4 byte: numero di colonne (M) --> numero intero
-*   successivi N*M*1 byte: matrix data in row-major order --> charatteri che compongono la stringa
-*
-*****************************************************************************
-*   Se lo si ritiene opportuno, � possibile cambiare la codifica in memoria
-*   della matrice.
-*****************************************************************************
-*
-*/
 char* load_seq(char* filename, int *n, int *k) {
     FILE* fp;
     int rows, cols, status, i;
@@ -231,18 +133,7 @@ char* load_seq(char* filename, int *n, int *k) {
     return data;
 }
  
-/*
-*   save_data
-*   =========
-*
-*   Salva su file un array lineare in row-major order
-*   come matrice di N righe e M colonne
-*
-*   Codifica del file:
-*   primi 4 byte: numero di righe (N) --> numero intero a 32 bit
-*   successivi 4 byte: numero di colonne (M) --> numero intero a 32 bit
-*   successivi N*M*4 byte: matrix data in row-major order --> numeri interi o floating-point a precisione singola
-*/
+
 void save_data(char* filename, void* X, int n, int k) {
     FILE* fp;
     int i;
@@ -264,17 +155,7 @@ void save_data(char* filename, void* X, int n, int k) {
     fclose(fp);
 }
  
-/*
-*   save_out
-*   =========
-*
-*   Salva su file un array lineare composto da k elementi.
-*
-*   Codifica del file:
-*   primi 4 byte: contenenti l'intero 1         --> numero intero a 32 bit
-*   successivi 4 byte: numero di elementi k     --> numero intero a 32 bit
-*   successivi byte: elementi del vettore       --> k numero floating-point a precisione singola
-*/
+
 void save_out(char* filename, MATRIX X, int k) {
     FILE* fp;
     int i;
@@ -288,14 +169,7 @@ void save_out(char* filename, MATRIX X, int k) {
     fclose(fp);
 }
  
-/*
-*   gen_rnd_mat
-*   =========
-*
-*   Genera in maniera casuale numeri reali tra -pi e pi
-*   per riempire una struttura dati di dimensione Nx1
-*
-*/
+
 void gen_rnd_mat(VECTOR v, int N){
     int i;
  
@@ -324,11 +198,7 @@ void sum(VECTOR v1, VECTOR v2, VECTOR res){
     }
 }
  
- 
-/*void norm(VECTOR v, type* res){
-    normalize(v, res);
-    *res = sqrtf(*res);
-}*/
+
  
 void prodotto_vettore_scalare(VECTOR v, type s){
     for(int i=0;i<4;i++){
