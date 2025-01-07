@@ -2,10 +2,10 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "gcc - Build and debug C and assembly",
+            "name": "32b Build and debug C and assembly",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/src/${fileBasenameNoExtension}",
+            "program": "${workspaceFolder}/src32/${fileBasenameNoExtension}",
             "args": [
                 "-seq", "seq_256.ds2", 
                 "-to", "20", 
@@ -15,7 +15,7 @@
                 "-d"
             ],
             "stopAtEntry": true,
-            "cwd": "${workspaceFolder}/src/",
+            "cwd": "${workspaceFolder}/src32/",
             "environment": [],
             "externalConsole": false,
             "MIMode": "gdb",
@@ -23,10 +23,10 @@
             "preLaunchTask": "run both build tasks"  
         },
         {
-            "name": "gcc - Build and debug C and assembly no debugger",
+            "name": "32b Build and debug C and assembly no debugger",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/src/${fileBasenameNoExtension}",
+            "program": "${workspaceFolder}/src32/${fileBasenameNoExtension}",
             "args": [
                 "-seq", "seq_256.ds2", 
                 "-to", "20", 
@@ -36,7 +36,7 @@
                 "-d"
             ],
             "stopAtEntry": false,
-            "cwd": "${workspaceFolder}/src/",
+            "cwd": "${workspaceFolder}/src32/",
             "environment": [],
             "externalConsole": false,
             "MIMode": "gdb",
@@ -44,10 +44,10 @@
             "preLaunchTask": "run both build tasks no debugger"  
         },
         {
-            "name": "gcc - Build and debug only C",
+            "name": "32b Build and debug only C",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/src/${fileBasenameNoExtension}",
+            "program": "${workspaceFolder}/src32/${fileBasenameNoExtension}",
             "args": [
                 "-seq", "seq_256.ds2", 
                 "-to", "20", 
@@ -57,7 +57,7 @@
                 "-d"
             ],
             "stopAtEntry": true,
-            "cwd": "${workspaceFolder}/src/",
+            "cwd": "${workspaceFolder}/src32/",
             "environment": [],
             "externalConsole": false,
             "MIMode": "gdb",
@@ -65,10 +65,10 @@
             "preLaunchTask": "gcc only c"  
         },
         {
-            "name": "gcc - Build and debug only C no debug",
+            "name": "32b Build and debug only C no debug",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/src/${fileBasenameNoExtension}",
+            "program": "${workspaceFolder}/src32/${fileBasenameNoExtension}",
             "args": [
                 "-seq", "seq_256.ds2", 
                 "-to", "20", 
@@ -78,7 +78,7 @@
                 "-d"
             ],
             "stopAtEntry": false,
-            "cwd": "${workspaceFolder}/src/",
+            "cwd": "${workspaceFolder}/src32/",
             "environment": [],
             "externalConsole": false,
             "MIMode": "gdb",
