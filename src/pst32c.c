@@ -80,7 +80,7 @@ typedef struct
 
 extern void rama_energy_assembly(VECTOR phi, VECTOR psi, type *rama);
 extern void hydrophobic_energy_assembly(char *s, int *n, MATRIX coords, type *result);
-extern electrostatic_energy_assembly(char *s, int *n, MATRIX coords, type *result);
+extern void electrostatic_energy_assembly(char *s, int *n, MATRIX coords, type *result);
 
 void *get_block(int size, int elements)
 {
