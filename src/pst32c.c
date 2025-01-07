@@ -301,41 +301,11 @@ type euclidean_dist(VECTOR v1, VECTOR v2, type *res)
 	*res = sqrtf((v2[0] - v1[0]) * (v2[0] - v1[0]) + (v2[1] - v1[1]) * (v2[1] - v1[1]) + (v2[2] - v1[2]) * (v2[2] - v1[2]));
 }
 
-void div_scalare(VECTOR v, type s)
-{
-	if (s == 0)
-		s = 1;
-	v[0] = v[0] / s;
-	v[1] = v[1] / s;
-	v[2] = v[2] / s;
-}
-
-void prodotto_vettore_scalare(VECTOR v, type s)
-{
-	v[0] = v[0] * s;
-	v[1] = v[1] * s;
-	v[2] = v[2] * s;
-	v[3] = v[3] * s;
-}
-
-void prodotto_scalare(VECTOR v1, VECTOR v2, type *res)
-{
-	*res = v1[0] * v2[0] + v1[1] * v2[1] + v1[2] * v2[2];
-}
-
 void prodotto_vettore_matrice(VECTOR v, VECTOR m, VECTOR res)
 {
 	res[0] = v[0] * m[0] + v[1] * m[1] + v[2] * m[2];
 	res[1] = v[0] * m[3] + v[1] * m[4] + v[2] * m[5];
 	res[2] = v[0] * m[6] + v[1] * m[7] + v[2] * m[8];
-}
-
-void mul(VECTOR v1, VECTOR v2)
-{
-	v1[0] = v1[0] * v2[0];
-	v1[1] = v1[1] * v2[1];
-	v1[2] = v1[2] * v2[2];
-	v1[3] = v1[3] * v2[3];
 }
 
 type approx_cos(type x)
@@ -354,12 +324,21 @@ void rotation(VECTOR axis, type theta, VECTOR rotation_matrix)
 {
 	type res;
 	type a, b, c, d;
-	prodotto_scalare(axis, axis, &res);
+	
+	res = axis[0] * axis[0] + axis[1] * axis[1] + axis[2] * axis[2];
 
-	div_scalare(axis, res);
+	if(res!=0){
+		axis[0] = axis[0] / res;
+		axis[1] = axis[1] / res;
+		axis[2] = axis[2] / res;
+	}
+
 	type aprx_sin = approx_sin(theta / 2.0f);
-	prodotto_vettore_scalare(axis, aprx_sin);
-	prodotto_vettore_scalare(axis, -1);
+
+	axis[0] = axis[0] * aprx_sin * -1;
+	axis[1] = axis[1] * aprx_sin * -1;
+	axis[2] = axis[2] * aprx_sin * -1;
+	axis[3] = axis[3] * aprx_sin * -1;
 
 	a = approx_cos(theta / 2.0f);
 	b = axis[0];
@@ -381,7 +360,6 @@ void rotation(VECTOR axis, type theta, VECTOR rotation_matrix)
 
 MATRIX backbone(char *s, int n, VECTOR phi, VECTOR psi)
 {
-
 	const type r_ca_n = 1.46;
 	const type r_ca_c = 1.52;
 	const type r_c_n = 1.33;
@@ -695,19 +673,12 @@ type energy(char *s, int n, VECTOR phi, VECTOR psi)
 	const type w_elec = 0.2;
 	const type w_pack = 0.3;
 
-	VECTOR v2 = alloc_matrix(1, 4);
+	v1[0] = v1[0] * w_rama;
+	v1[1] = v1[1] * w_hydro;;
+	v1[2] = v1[2] * w_elec;
+	v1[3] = v1[3] * w_pack;
 
-	v2[0] = w_rama;
-	v2[1] = w_hydro;
-	v2[2] = w_elec;
-	v2[3] = w_pack;
-
-	mul(v1, v2);
-	type total = 0;
-	
-	total = v1[0] + v1[1] + v1[2] + v1[3];
-
-	return total;
+	return v1[0] + v1[1] + v1[2] + v1[3];
 }
 
 void pst(params *input)
