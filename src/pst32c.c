@@ -80,7 +80,6 @@ typedef struct
 
 extern void rama_energy_assembly(VECTOR phi, VECTOR psi, type *rama);
 
-
 void *get_block(int size, int elements)
 {
 	return _mm_malloc(elements * size, 16);
@@ -214,18 +213,6 @@ void gen_rnd_mat(VECTOR v, int N)
 	}
 }
 
-type approx_cos(type x)
-{
-	type x2 = x * x;
-	return 1 - (x2 / 2.0f) + (x2 * x2 / 24.0f) - (x2 * x2 * x2 / 720.0f);
-}
-
-type approx_sin(type x)
-{
-	type x2 = x * x;
-	return x - (x * x2 / 6.0f) + (x * x2 * x2 / 120.0f) - (x * x2 * x2 * x2 / 5040.0f);
-}
-
 void rotation(VECTOR axis, type theta, VECTOR rotation_matrix)
 {
 	type res;
@@ -240,14 +227,17 @@ void rotation(VECTOR axis, type theta, VECTOR rotation_matrix)
 		axis[2] = axis[2] / res;
 	}
 
-	type aprx_sin = approx_sin(theta / 2.0f);
+	type x = theta / 2.0f;
+	type x2 = x * x;
+
+	type aprx_sin = x - (x * x2 / 6.0f) + (x * x2 * x2 / 120.0f) - (x * x2 * x2 * x2 / 5040.0f);
 
 	axis[0] = axis[0] * aprx_sin * -1;
 	axis[1] = axis[1] * aprx_sin * -1;
 	axis[2] = axis[2] * aprx_sin * -1;
 	axis[3] = axis[3] * aprx_sin * -1;
 
-	a = approx_cos(theta / 2.0f);
+	a = 1 - (x2 / 2.0f) + (x2 * x2 / 24.0f) - (x2 * x2 * x2 / 720.0f);
 	b = axis[0];
 	c = axis[1];
 	d = axis[2];
@@ -583,7 +573,7 @@ type energy(char *s, int n, VECTOR phi, VECTOR psi)
 
 	v1[0] = v1[0] * w_rama;
 	v1[1] = v1[1] * w_hydro;
-	;
+
 	v1[2] = v1[2] * w_elec;
 	v1[3] = v1[3] * w_pack;
 
