@@ -296,11 +296,6 @@ void gen_rnd_mat(VECTOR v, int N)
 	}
 }
 
-type euclidean_dist(VECTOR v1, VECTOR v2, type *res)
-{
-	*res = sqrtf((v2[0] - v1[0]) * (v2[0] - v1[0]) + (v2[1] - v1[1]) * (v2[1] - v1[1]) + (v2[2] - v1[2]) * (v2[2] - v1[2]));
-}
-
 void prodotto_vettore_matrice(VECTOR v, VECTOR m, VECTOR res)
 {
 	res[0] = v[0] * m[0] + v[1] * m[1] + v[2] * m[2];
@@ -324,10 +319,11 @@ void rotation(VECTOR axis, type theta, VECTOR rotation_matrix)
 {
 	type res;
 	type a, b, c, d;
-	
+
 	res = axis[0] * axis[0] + axis[1] * axis[1] + axis[2] * axis[2];
 
-	if(res!=0){
+	if (res != 0)
+	{
 		axis[0] = axis[0] / res;
 		axis[1] = axis[1] / res;
 		axis[2] = axis[2] / res;
@@ -553,9 +549,7 @@ type hydrophobic_energy(char *s, int n, MATRIX coords)
 			coords_c_alpha_j[2] = coords[idx_j + 2];
 			coords_c_alpha_j[3] = 0;
 
-			type dist = 0;
-
-			euclidean_dist(coords_c_alpha_i, coords_c_alpha_j, &dist);
+			type dist = sqrtf((coords_c_alpha_j[0] - coords_c_alpha_i[0]) * (coords_c_alpha_j[0] - coords_c_alpha_i[0]) + (coords_c_alpha_j[1] - coords_c_alpha_i[1]) * (coords_c_alpha_j[1] - coords_c_alpha_i[1]) + (coords_c_alpha_j[2] - coords_c_alpha_i[2]) * (coords_c_alpha_j[2] - coords_c_alpha_i[2]));
 
 			int pos_i = s[i] - 65;
 			int pos_j = s[j] - 65;
@@ -593,9 +587,8 @@ type electrostatic_energy(char *s, int n, MATRIX coords)
 			coords_c_alpha_j[1] = coords[idx_j + 1];
 			coords_c_alpha_j[2] = coords[idx_j + 2];
 			coords_c_alpha_j[3] = 0;
-			type dist = 0;
 
-			euclidean_dist(coords_c_alpha_i, coords_c_alpha_j, &dist);
+			type dist = sqrtf((coords_c_alpha_j[0] - coords_c_alpha_i[0]) * (coords_c_alpha_j[0] - coords_c_alpha_i[0]) + (coords_c_alpha_j[1] - coords_c_alpha_i[1]) * (coords_c_alpha_j[1] - coords_c_alpha_i[1]) + (coords_c_alpha_j[2] - coords_c_alpha_i[2]) * (coords_c_alpha_j[2] - coords_c_alpha_i[2]));
 
 			int pos_i = s[i] - 65;
 			int pos_j = s[j] - 65;
@@ -636,9 +629,7 @@ type packing_energy(char *s, int n, MATRIX coords)
 			coords_c_alpha_j[2] = coords[idx_j + 2];
 			coords_c_alpha_j[3] = 0;
 
-			type dist = 0;
-
-			euclidean_dist(coords_c_alpha_i, coords_c_alpha_j, &dist);
+			type dist = sqrtf((coords_c_alpha_j[0] - coords_c_alpha_i[0]) * (coords_c_alpha_j[0] - coords_c_alpha_i[0]) + (coords_c_alpha_j[1] - coords_c_alpha_i[1]) * (coords_c_alpha_j[1] - coords_c_alpha_i[1]) + (coords_c_alpha_j[2] - coords_c_alpha_i[2]) * (coords_c_alpha_j[2] - coords_c_alpha_i[2]));
 
 			int pos_j = s[j] - 65;
 
@@ -674,7 +665,8 @@ type energy(char *s, int n, VECTOR phi, VECTOR psi)
 	const type w_pack = 0.3;
 
 	v1[0] = v1[0] * w_rama;
-	v1[1] = v1[1] * w_hydro;;
+	v1[1] = v1[1] * w_hydro;
+	;
 	v1[2] = v1[2] * w_elec;
 	v1[3] = v1[3] * w_pack;
 
