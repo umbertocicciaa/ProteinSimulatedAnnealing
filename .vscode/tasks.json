@@ -1,0 +1,132 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "nasm build active file",
+            "type": "shell",
+            "command": "/usr/bin/nasm",  // Corrected path to nasm
+            "args": [
+                "-f", 
+                "elf32", 
+                "${fileDirname}/${fileBasenameNoExtension}_ASSEMBLY.nasm"
+            ],
+            "options": {
+                "cwd": "${fileDirname}" 
+            },
+            "group": {
+                "kind": "build",
+                "isDefault": false
+            },
+            "problemMatcher": [],
+            "detail": "Compiles the assembly file with NASM to ELF32 object file"
+        },
+        {
+            "label": "gcc link active object file",
+            "type": "shell",
+            "command": "/usr/bin/gcc",
+            "args": [
+                "-g",
+                "-m32", 
+                "-msse", 
+                "-O0",
+                "-no-pie", 
+                "${fileDirname}/${fileBasenameNoExtension}.c",
+                "-o", "${fileDirname}/${fileBasenameNoExtension}",
+                "${fileDirname}/${fileBasenameNoExtension}_ASSEMBLY.o",
+                "-lm"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": false
+            },
+            "problemMatcher": [],
+            "detail": "Links the object file with GCC to create an executable"
+        },
+        {
+            "label": "gcc link active object file no debugger",
+            "type": "shell",
+            "command": "/usr/bin/gcc",
+            "args": [
+                "-m32", 
+                "-msse", 
+                "-O0",
+                "-no-pie", 
+                "${fileDirname}/${fileBasenameNoExtension}.c",
+                "-o", "${fileDirname}/${fileBasenameNoExtension}",
+                "${fileDirname}/${fileBasenameNoExtension}_ASSEMBLY.o",
+                "-lm"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": false
+            },
+            "problemMatcher": [],
+            "detail": "Links the object file with GCC to create an executable no debugger"
+        },
+        {
+            "label": "run both build tasks",
+            "type": "shell",
+            "command": "echo Running both NASM and GCC tasks...",
+            "dependsOn": [
+                "nasm build active file",
+                "gcc link active object file"
+            ],
+            "group": "build",
+            "problemMatcher": [],
+            "detail": "Runs both NASM and GCC tasks in sequence"
+        },
+        {
+            "label": "run both build tasks no debugger",
+            "type": "shell",
+            "command": "echo Running both NASM and GCC tasks...",
+            "dependsOn": [
+                "nasm build active file",
+                "gcc link active object file no debugger"
+            ],
+            "group": "build",
+            "problemMatcher": [],
+            "detail": "Runs both NASM and GCC tasks in sequence no debugger"
+        },
+        {
+            "label": "gcc only c",
+            "type": "shell",
+            "command": "/usr/bin/gcc",
+            "args": [
+                "-g",
+                "-m32", 
+                "-msse", 
+                "-O0",
+                "-no-pie", 
+                "${fileDirname}/${fileBasenameNoExtension}.c",
+                "-o", "${fileDirname}/${fileBasenameNoExtension}",
+                "-lm"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": false
+            },
+            "problemMatcher": [],
+            "detail": "Only C"
+        },
+        {
+            "label": "gcc only c no debug",
+            "type": "shell",
+            "command": "/usr/bin/gcc",
+            "args": [
+                "-m32", 
+                "-msse", 
+                "-O0",
+                "-no-pie", 
+                "${fileDirname}/${fileBasenameNoExtension}.c",
+                "-o", "${fileDirname}/${fileBasenameNoExtension}",
+                "-lm"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": false
+            },
+            "problemMatcher": [],
+            "detail": "Only C no debug"
+        },
+    ]
+}
