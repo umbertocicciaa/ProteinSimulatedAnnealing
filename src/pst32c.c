@@ -704,8 +704,8 @@ type energy(char *s, int n, VECTOR phi, VECTOR psi)
 
 	mul(v1, v2);
 	type total = 0;
-	for (int i = 0; i < 4; i++)
-		total += v1[i];
+	
+	total = v1[0] + v1[1] + v1[2] + v1[3];
 
 	return total;
 }
