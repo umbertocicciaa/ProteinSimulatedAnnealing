@@ -381,13 +381,13 @@ void rotation(VECTOR axis, type theta, VECTOR rotation_matrix)
 MATRIX backbone(char *s, int n, VECTOR phi, VECTOR psi)
 {
 
-	type r_ca_n = 1.46;
-	type r_ca_c = 1.52;
-	type r_c_n = 1.33;
+	const type r_ca_n = 1.46;
+	const type r_ca_c = 1.52;
+	const type r_c_n = 1.33;
 
-	type theta_ca_c_n = 2.028;
-	type theta_c_n_ca = 2.124;
-	type theta_n_ca_c = 1.940;
+	const type theta_ca_c_n = 2.028;
+	const type theta_c_n_ca = 2.124;
+	const type theta_n_ca_c = 1.940;
 
 	MATRIX coords = alloc_matrix(n * 3, 3);
 
@@ -689,10 +689,10 @@ type energy(char *s, int n, VECTOR phi, VECTOR psi)
 	v1[2] = elec;
 	v1[3] = pack;
 
-	type w_rama = 1.0;
-	type w_hydro = 0.5;
-	type w_elec = 0.2;
-	type w_pack = 0.3;
+	const type w_rama = 1.0;
+	const type w_hydro = 0.5;
+	const type w_elec = 0.2;
+	const type w_pack = 0.3;
 
 	VECTOR v2 = alloc_matrix(1, 4);
 
