@@ -3,3 +3,6 @@ comandi per eseguire i file da terminale
 COMPILARE NASM: nasm -f elf32 pst32_fun.nasm
 COMPILARE GCC: gcc -m32 -msse -O0 -no-pie pst32c_VECTOR.c -o pst32c_VECTOR pst32_fun.o -lm
 ESEGUIRE: ./pst32c_VECTOR -seq seq_256.ds2 -to 20 -alpha 1 -k 1 -sd 3 -d
+
+gcc -m64 -msse -mavx -O0 -no-pie pst64c.c -o pst64c -lm
+./pst64c -seq seq_256.ds2 -to 20 -alpha 1 -k 1 -sd 3 -d
