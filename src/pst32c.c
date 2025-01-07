@@ -296,13 +296,6 @@ void gen_rnd_mat(VECTOR v, int N)
 	}
 }
 
-void prodotto_vettore_matrice(VECTOR v, VECTOR m, VECTOR res)
-{
-	res[0] = v[0] * m[0] + v[1] * m[1] + v[2] * m[2];
-	res[1] = v[0] * m[3] + v[1] * m[4] + v[2] * m[5];
-	res[2] = v[0] * m[6] + v[1] * m[7] + v[2] * m[8];
-}
-
 type approx_cos(type x)
 {
 	type x2 = x * x;
@@ -430,7 +423,9 @@ MATRIX backbone(char *s, int n, VECTOR phi, VECTOR psi)
 			newv[2] = 0;
 			newv[3] = 0;
 
-			prodotto_vettore_matrice(v, rotation_matrix, newv);
+			newv[0] = v[0] * rotation_matrix[0] + v[1] * rotation_matrix[1] + v[2] * rotation_matrix[2];
+			newv[1] = v[0] * rotation_matrix[3] + v[1] * rotation_matrix[4] + v[2] * rotation_matrix[5];
+			newv[2] = v[0] * rotation_matrix[6] + v[1] * rotation_matrix[7] + v[2] * rotation_matrix[8];
 
 			coords_n[0] = coords_c[0] + newv[0];
 			coords_n[1] = coords_c[1] + newv[1];
@@ -463,7 +458,9 @@ MATRIX backbone(char *s, int n, VECTOR phi, VECTOR psi)
 			newv[2] = 0;
 			newv[3] = 0;
 
-			prodotto_vettore_matrice(v_, rotation_matrix, newv);
+			newv[0] = v_[0] * rotation_matrix[0] + v_[1] * rotation_matrix[1] + v_[2] * rotation_matrix[2];
+			newv[1] = v_[0] * rotation_matrix[3] + v_[1] * rotation_matrix[4] + v_[2] * rotation_matrix[5];
+			newv[2] = v_[0] * rotation_matrix[6] + v_[1] * rotation_matrix[7] + v_[2] * rotation_matrix[8];
 
 			coords_c_alpha[0] = coords_n[0] + newv[0];
 			coords_c_alpha[1] = coords_n[1] + newv[1];
@@ -507,7 +504,9 @@ MATRIX backbone(char *s, int n, VECTOR phi, VECTOR psi)
 		v[1] = r_ca_c;
 		v[2] = 0;
 
-		prodotto_vettore_matrice(v, rotation_matrix, newv);
+		newv[0] = v[0] * rotation_matrix[0] + v[1] * rotation_matrix[1] + v[2] * rotation_matrix[2];
+		newv[1] = v[0] * rotation_matrix[3] + v[1] * rotation_matrix[4] + v[2] * rotation_matrix[5];
+		newv[2] = v[0] * rotation_matrix[6] + v[1] * rotation_matrix[7] + v[2] * rotation_matrix[8];
 
 		coords_c[0] = coords_c_alpha[0] + newv[0];
 		coords_c[1] = coords_c_alpha[1] + newv[1];
