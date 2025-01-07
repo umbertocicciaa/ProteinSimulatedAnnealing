@@ -357,7 +357,8 @@ void rotation(VECTOR axis, type theta, VECTOR rotation_matrix)
 	prodotto_scalare(axis, axis, &res);
 
 	div_scalare(axis, res);
-	prodotto_vettore_scalare(axis, approx_sin(theta / 2.0f));
+	type aprx_sin = approx_sin(theta / 2.0f);
+	prodotto_vettore_scalare(axis, aprx_sin);
 	prodotto_vettore_scalare(axis, -1);
 
 	a = approx_cos(theta / 2.0f);
