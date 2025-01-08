@@ -22,6 +22,7 @@
             "miDebuggerPath": "/usr/bin/gdb",  
             "preLaunchTask": "run both build tasks"  
         },
+
         {
             "name": "32b Build and debug C and assembly no debugger",
             "type": "cppdbg",
@@ -43,6 +44,7 @@
             "miDebuggerPath": "/usr/bin/gdb",  
             "preLaunchTask": "run both build tasks no debugger"  
         },
+
         {
             "name": "32b Build and debug only C",
             "type": "cppdbg",
@@ -64,6 +66,7 @@
             "miDebuggerPath": "/usr/bin/gdb",  
             "preLaunchTask": "gcc only c"  
         },
+
         {
             "name": "32b Build and debug only C no debug",
             "type": "cppdbg",
@@ -84,6 +87,30 @@
             "MIMode": "gdb",
             "miDebuggerPath": "/usr/bin/gdb",  
             "preLaunchTask": "gcc only c no debug"  
-        }
+        },
+
+        {
+            "name": "64b avx Build and debug C and assembly no debugger",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/src64/${fileBasenameNoExtension}",
+            "args": [
+                "-seq", "seq_256.ds2", 
+                "-to", "20", 
+                "-alpha", "1", 
+                "-k", "1", 
+                "-sd", "3", 
+                "-d"
+            ],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}/src64/",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "miDebuggerPath": "/usr/bin/gdb",  
+            "preLaunchTask": "run both build tasks no debugger avx"  
+        },
+
+        
     ]
 }
