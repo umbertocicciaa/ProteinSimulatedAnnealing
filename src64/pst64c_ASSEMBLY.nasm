@@ -31,7 +31,11 @@
 %include "sseutils64.nasm"
 
 section .data			; Sezione contenente dati inizializzati
-
+    alpha_phi dq -57.8
+    alpha_psi dq -47.0
+    beta_phi dq -119.0
+    beta_psi dq 113.0
+    half dq 0.5
 section .bss			; Sezione contenente dati non inizializzati
 
 alignb 32
@@ -116,6 +120,65 @@ prova:
 		; ------------------------------------------------------------
 		; Sequenza di uscita dalla funzione
 		; ------------------------------------------------------------
+		popaq				; ripristina i registri generali
+		mov		rsp, rbp	; ripristina lo Stack Pointer
+		pop		rbp		    ; ripristina il Base Pointer
+		ret				    ; torna alla funzione C chiamante
+
+
+global rama_energy_assembly
+
+rama_energy_assembly:
+		push		rbp				; salva il Base Pointer
+		mov		rbp, rsp			; il Base Pointer punta al Record di Attivazione corrente
+		sub rsp, 32             ; alloca spazio sullo stack
+		pushaq						; salva i registri generali
+
+	vmovsd xmm0, qword [alpha_phi]
+    vmovsd xmm1, qword [alpha_psi]
+    vmovsd xmm2, qword [beta_phi]
+    vmovsd xmm3, qword [beta_psi]
+    vmovsd xmm4, qword [half]
+
+    mov rsi, 0
+    vxorpd ymm5, ymm5, ymm5
+
+.loop:
+    cmp rsi, 256
+    jge .end_loop
+
+    vmovsd xmm6, qword [rdi + rsi * 8]
+    vmovsd xmm7, qword [rsi + rsi * 8]
+
+    vsubsd xmm8, xmm6, xmm0
+    vmulsd xmm8, xmm8, xmm8
+
+    vsubsd xmm9, xmm7, xmm1
+    vmulsd xmm9, xmm9, xmm9
+
+    vaddsd xmm8, xmm8, xmm9
+    vsqrtsd xmm8, xmm8, xmm8
+
+    vsubsd xmm9, xmm6, xmm2
+    vmulsd xmm9, xmm9, xmm9
+
+    vsubsd xmm10, xmm7, xmm3
+    vmulsd xmm10, xmm10, xmm10
+
+    vaddsd xmm9, xmm9, xmm10
+    vsqrtsd xmm9, xmm9, xmm9
+
+    vminsd xmm8, xmm8, xmm9
+    vmulsd xmm8, xmm8, xmm4
+    vaddsd xmm5, xmm5, xmm8
+
+    add rsi, 1
+    jmp .loop
+
+.end_loop:
+    vmovsd qword [rdx], xmm5
+
+
 		popaq				; ripristina i registri generali
 		mov		rsp, rbp	; ripristina lo Stack Pointer
 		pop		rbp		    ; ripristina il Base Pointer

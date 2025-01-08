@@ -162,7 +162,7 @@
             "args": [
                 "-m64", 
                 "-msse",
-                "-mvax" ,
+                "-mavx" ,
                 "-O0",
                 "-no-pie", 
                 "${fileDirname}/${fileBasenameNoExtension}.c",
