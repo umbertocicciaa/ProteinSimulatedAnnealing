@@ -49,7 +49,7 @@
 #include <malloc.h>
 #include <stdint.h>
 
-#define type double
+#define type float
 #define MATRIX type *
 #define REAL_MATRIX type **
 #define VECTOR type *
