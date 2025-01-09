@@ -169,6 +169,7 @@ void gen_rnd_mat(VECTOR v, int N)
 }
 
 extern void rama_energy_assembly(VECTOR phi, VECTOR psi, type *rama);
+extern void hydrophobic_energy_assembly(char *s, int n, MATRIX coords, type *hydro);
 
 void rotation(VECTOR axis, type theta, VECTOR rotation_matrix)
 {
@@ -382,7 +383,7 @@ MATRIX backbone(char *s, int n, VECTOR phi, VECTOR psi)
     return coords;
 }
 
-type hydrophobic_energy(char *s, int n, MATRIX coords)
+void hydrophobic_energy(char *s, int n, MATRIX coords, type* result)
 {
     type energy = 0;
     int i, j, k;
@@ -418,7 +419,7 @@ type hydrophobic_energy(char *s, int n, MATRIX coords)
                 energy = energy + (hydrophobicity[pos_i] * hydrophobicity[pos_j]) / dist;
         }
     }
-    return energy;
+    *result = energy;
 }
 
 type electrostatic_energy(char *s, int n, MATRIX coords)
@@ -507,7 +508,8 @@ type energy(char *s, int n, VECTOR phi, VECTOR psi)
     MATRIX coords = backbone(s, n, phi, psi);
     type rama;
     rama_energy_assembly(phi, psi, &rama);
-    type hydro = hydrophobic_energy(s, n, coords);
+    type hydro;
+    hydrophobic_energy(s, n, coords, &hydro);
     type elec = electrostatic_energy(s, n, coords);
     type pack = packing_energy(s, n, coords);
 
