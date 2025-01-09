@@ -489,24 +489,13 @@ type energy(char *s, int n, VECTOR phi, VECTOR psi)
 	type pack = packing_energy(s, n, coords);
 
 	VECTOR v1 = alloc_matrix(1, 4);
+    
+    v1[0] = rama * 1.0;
+    v1[1] = hydro * 0.5;
+    v1[2] = elec * 0.2;
+    v1[3] = pack * 0.3;
 
-	v1[0] = rama;
-	v1[1] = hydro;
-	v1[2] = elec;
-	v1[3] = pack;
-
-	const type w_rama = 1.0;
-	const type w_hydro = 0.5;
-	const type w_elec = 0.2;
-	const type w_pack = 0.3;
-
-	v1[0] = v1[0] * w_rama;
-	v1[1] = v1[1] * w_hydro;
-
-	v1[2] = v1[2] * w_elec;
-	v1[3] = v1[3] * w_pack;
-
-	return v1[0] + v1[1] + v1[2] + v1[3];
+    return v1[0] + v1[1] + v1[2] + v1[3];
 }
 
 void pst(params *input)
