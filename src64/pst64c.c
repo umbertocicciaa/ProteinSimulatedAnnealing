@@ -174,7 +174,6 @@ void gen_rnd_mat(VECTOR v, int N)
 }
 
 extern void rama_energy_assembly(VECTOR phi, VECTOR psi, type *rama);
-extern void hydrophobic_energy_assembly(char *s, int n, MATRIX coords, type *hydro);
 
 void rotation(VECTOR axis, type theta, VECTOR rotation_matrix)
 {
