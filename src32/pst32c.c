@@ -55,9 +55,14 @@
 
 #define random() (((type)rand()) / RAND_MAX)
 
-type hydrophobicity[] = {1.8, -1, 2.5, -3.5, -3.5, 2.8, -0.4, -3.2, 4.5, -1, -3.9, 3.8, 1.9, -3.5, -1, -1.6, -3.5, -4.5, -0.8, -0.7, -1, 4.2, -0.9, -1, -1.3, -1};				   // hydrophobicity
-type volume[] = {88.6, -1, 108.5, 111.1, 138.4, 189.9, 60.1, 153.2, 166.7, -1, 168.6, 166.7, 162.9, 114.1, -1, 112.7, 143.8, 173.4, 89.0, 116.1, -1, 140.0, 227.8, -1, 193.6, -1}; // volume
-type charge[] = {0, -1, 0, -1, -1, 0, 0, 0.5, 0, -1, 1, 0, 0, 0, -1, 0, 0, 1, 0, 0, -1, 0, 0, -1, 0, -1};																		   // charge
+const type hydrophobicity[] = {1.8, -1, 2.5, -3.5, -3.5, 2.8, -0.4, -3.2, 4.5, -1, -3.9, 3.8, 1.9, -3.5, -1, -1.6, -3.5, -4.5, -0.8, -0.7, -1, 4.2, -0.9, -1, -1.3, -1};				   // hydrophobicity
+const type volume[] = {88.6, -1, 108.5, 111.1, 138.4, 189.9, 60.1, 153.2, 166.7, -1, 168.6, 166.7, 162.9, 114.1, -1, 112.7, 143.8, 173.4, 89.0, 116.1, -1, 140.0, 227.8, -1, 193.6, -1}; // volume
+const type charge[] = {0, -1, 0, -1, -1, 0, 0, 0.5, 0, -1, 1, 0, 0, 0, -1, 0, 0, 1, 0, 0, -1, 0, 0, -1, 0, -1};																		   // charge
+
+const type uno =1.0;
+const type zeroPunto5=0.5;
+const type zeroPunto2=0.2;
+const type zeroPunto3=0.3;
 
 typedef struct
 {
@@ -483,13 +488,7 @@ type energy(char *s, int n, VECTOR phi, VECTOR psi)
 	electrostatic_energy_assembly(s, &n, coords, &elec);
 	type pack = packing_energy(s, n, coords);
 
-	VECTOR v1 = alloc_matrix(1, 4);
-	v1[0] = rama * 1.0;
-	v1[1] = hydro * 0.5;
-	v1[2] = elec * 0.2;
-	v1[3] = pack * 0.3;
-
-	return v1[0] + v1[1] + v1[2] + v1[3];
+    return (rama * uno) +(hydro * zeroPunto5) +(elec * zeroPunto2) + (pack * zeroPunto3);
 }
 
 void pst(params *input)
