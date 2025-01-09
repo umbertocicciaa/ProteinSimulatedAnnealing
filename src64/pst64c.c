@@ -173,7 +173,6 @@ extern void rama_energy_assembly(VECTOR phi, VECTOR psi, type *rama);
 
 void rotation(VECTOR axis, type theta, VECTOR rotation_matrix)
 {
-
     type res;
     type a, b, c, d;
 
@@ -384,7 +383,6 @@ MATRIX backbone(char *s, int n, VECTOR phi, VECTOR psi)
     return coords;
 }
 
-
 type hydrophobic_energy(char *s, int n, MATRIX coords)
 {
     type energy = 0;
@@ -476,7 +474,7 @@ type packing_energy(char *s, int n, MATRIX coords)
         type density = 0;
         int pos_i = s[i] - 65;
 
-        int idx_i = i * 3 * 3 + 3; 
+        int idx_i = i * 3 * 3 + 3;
 
         coords_c_alpha_i[0] = coords[idx_i];
         coords_c_alpha_i[1] = coords[idx_i + 1];
@@ -485,8 +483,7 @@ type packing_energy(char *s, int n, MATRIX coords)
 
         for (j = 0; j < n; j++)
         {
-
-            int idx_j = j * 3 * 3 + 3; // indirizzo base generico C_alpha_j
+            int idx_j = j * 3 * 3 + 3;
 
             coords_c_alpha_j[0] = coords[idx_j];
             coords_c_alpha_j[1] = coords[idx_j + 1];
@@ -516,12 +513,10 @@ type energy(char *s, int n, VECTOR phi, VECTOR psi)
     type pack = packing_energy(s, n, coords);
 
     VECTOR v1 = alloc_matrix(1, 4);
-
     v1[0] = rama * 1.0;
     v1[1] = hydro * 0.5;
     v1[2] = elec * 0.2;
     v1[3] = pack * 0.3;
-
     return v1[0] + v1[1] + v1[2] + v1[3];
 }
 
@@ -541,18 +536,17 @@ void pst(params *input)
     while (T > 0)
     {
         unsigned int seed = input->sd;
-        int i = (int)(random() * input->N); 
+        int i = (int)(random() * input->N);
 
         type theta_phi = (random() * 2 * M_PI) - M_PI;
         type theta_psi = (random() * 2 * M_PI) - M_PI;
-
 
         input->phi[i] = input->phi[i] + theta_phi;
         input->psi[i] = input->psi[i] + theta_psi;
 
         type new_E = energy(input->seq, input->N, input->phi, input->psi);
         type delta_E = new_E - E;
-   
+
         if (delta_E <= 0)
         {
             E = new_E;
