@@ -178,10 +178,8 @@ extern void hydrophobic_energy_assembly(char *s, int n, MATRIX coords, type *hyd
 
 void rotation(VECTOR axis, type theta, VECTOR rotation_matrix)
 {
-    type res;
+    type res = axis[0] * axis[0] + axis[1] * axis[1] + axis[2] * axis[2];
     type a, b, c, d;
-
-    res = axis[0] * axis[0] + axis[1] * axis[1] + axis[2] * axis[2];
 
     if (res != 0)
     {
@@ -235,10 +233,10 @@ MATRIX backbone(char *s, int n, VECTOR phi, VECTOR psi)
     coords[0] = 0;
     coords[1] = 0;
     coords[2] = 0;
-
     coords[3] = r_ca_n;
     coords[4] = 0;
     coords[5] = 0;
+    
     VECTOR coords_c = alloc_matrix(1, 4);
     VECTOR coords_c_alpha = alloc_matrix(1, 4);
     VECTOR coords_n = alloc_matrix(1, 4);
