@@ -1,44 +1,3 @@
-/**************************************************************************************
- *
- * CdL Magistrale in Ingegneria Informatica
- * Corso di Architetture e Programmazione dei Sistemi di Elaborazione - a.a. 2024/25
- *
- * Progetto dell'algoritmo Predizione struttura terziaria proteine 221 231 a
- * in linguaggio assembly x86-32 + SSE
- *
- * F. Angiulli F. Fassetti S. Nisticò, novembre 2024
- *
- **************************************************************************************/
-
-/*
- *
- * Software necessario per l'esecuzione:
- *
- *    NASM (www.nasm.us)
- *    GCC (gcc.gnu.org)
- *
- * entrambi sono disponibili come pacchetti software
- * installabili mediante il packaging tool del sistema
- * operativo; per esempio, su Ubuntu, mediante i comandi:
- *
- *    sudo apt-get install nasm
- *    sudo apt-get install gcc
- *
- * potrebbe essere necessario installare le seguenti librerie:
- *
- *    sudo apt-get install lib32gcc-4.8-dev (o altra versione)
- *    sudo apt-get install libc6-dev-i386
- *
- * Per generare il file eseguibile:
- *
- * nasm -f elf32 pst32.nasm && gcc -m32 -msse -O0 -no-pie sseutils32.o pst32.o pst32c.c -o pst32c -lm && ./pst32c $pars
- *
- * oppure
- *
- * ./runpst32
- *
- */
-
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
@@ -59,7 +18,7 @@ const type hydrophobicity[] = {1.8, -1, 2.5, -3.5, -3.5, 2.8, -0.4, -3.2, 4.5, -
 const type volume[] = {88.6, -1, 108.5, 111.1, 138.4, 189.9, 60.1, 153.2, 166.7, -1, 168.6, 166.7, 162.9, 114.1, -1, 112.7, 143.8, 173.4, 89.0, 116.1, -1, 140.0, 227.8, -1, 193.6, -1}; // volume
 const type charge[] = {0, -1, 0, -1, -1, 0, 0, 0.5, 0, -1, 1, 0, 0, 0, -1, 0, 0, 1, 0, 0, -1, 0, 0, -1, 0, -1};																		   // charge
 
-const type uno =1.0;
+const type uno=1.0;
 const type zeroPunto5=0.5;
 const type zeroPunto2=0.2;
 const type zeroPunto3=0.3;
