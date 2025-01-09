@@ -30,12 +30,13 @@
 
 %include "sseutils64.nasm"
 
-section .data			; Sezione contenente dati inizializzati
-    alpha_phi dq -57.8
-    alpha_psi dq -47.0
-    beta_phi dq -119.0
-    beta_psi dq 113.0
-    half dq 0.5
+
+section .data
+alpha_phi dq -57.8
+alpha_psi dq -47.0
+beta_phi  dq -119.0
+beta_psi  dq 113.0
+half      dq 0.5
 section .bss			; Sezione contenente dati non inizializzati
 
 alignb 32
@@ -43,23 +44,7 @@ e		resq		1
 
 section .text			; Sezione contenente il codice macchina
 
-; ----------------------------------------------------------
-; macro per l'allocazione dinamica della memoria
 ;
-;	getmem	<size>,<elements>
-;
-; alloca un'area di memoria di <size>*<elements> bytes
-; (allineata a 16 bytes) e restituisce in EAX
-; l'indirizzo del primo bytes del blocco allocato
-; (funziona mediante chiamata a funzione C, per cui
-; altri registri potrebbero essere modificati)
-;
-;	fremem	<address>
-;
-; dealloca l'area di memoria che ha inizio dall'indirizzo
-; <address> precedentemente allocata con getmem
-; (funziona mediante chiamata a funzione C, per cui
-; altri registri potrebbero essere modificati)
 
 extern get_block
 extern free_block
@@ -75,111 +60,90 @@ extern free_block
 	call	free_block
 %endmacro
 
-; ------------------------------------------------------------
-; Funzione prova
-; ------------------------------------------------------------
-global prova
-
-msg	db 'e:',32,0
-nl	db 10,0
-
-prova:
-		; ------------------------------------------------------------
-		; Sequenza di ingresso nella funzione
-		; ------------------------------------------------------------
-		push		rbp				; salva il Base Pointer
-		mov		rbp, rsp			; il Base Pointer punta al Record di Attivazione corrente
-		pushaq						; salva i registri generali
-
-		; ------------------------------------------------------------
-		; I parametri sono passati nei registri
-		; ------------------------------------------------------------
-		; rdi = indirizzo della struct input
-		
-		; esempio: stampa input->e
-       	; [RDI] input->seq; 			    // sequenza
-		; [RDI + 8]  input->N;			    // lunghezza della sequenza
-		; [RDI + 12] input->sd; 		    // tasso raffredamento
-		; [RDI + 16] input->to;			    // temperatura
-		; [RDI + 24] input->alpha;		    // tasso raffredamento
-		; [RDI + 32] input->k; 		        // numero di features da estrarre
-		; [RDI + 40] input->hydrophobicity;	// hydrophobicity
-		; [RDI + 48] input->volume;		    // volume
-		; [RDI + 56] input->charge;		    // charge
-		; [RDI + 64] input->phi;		    // vettore angoli phi
-		; [RDI + 72] input-> psi;		    // vettore angoli psi
-		; [RDI + 80] input->e:			    // energy
-		; [RDI + 88] input->display;
-		; [RDI + 92] input->silent;
-
-		VMOVSD		XMM0, [RDI+80]
-		VMOVSD		[e], XMM0
-		prints 		msg
-		printsd		e
-		prints 		nl
-		; ------------------------------------------------------------
-		; Sequenza di uscita dalla funzione
-		; ------------------------------------------------------------
-		popaq				; ripristina i registri generali
-		mov		rsp, rbp	; ripristina lo Stack Pointer
-		pop		rbp		    ; ripristina il Base Pointer
-		ret				    ; torna alla funzione C chiamante
-
 
 global rama_energy_assembly
 
 rama_energy_assembly:
-		push		rbp				; salva il Base Pointer
-		mov		rbp, rsp			; il Base Pointer punta al Record di Attivazione corrente
-		sub rsp, 32             ; alloca spazio sullo stack
-		pushaq						; salva i registri generali
+    ; Prologo
+    push    rbp             ; salva il Base Pointer
+    mov     rbp, rsp        ; il Base Pointer punta al Record di Attivazione corrente
+    pushaq                  ; salva i registri generali
 
-	vmovsd xmm0, qword [alpha_phi]
-    vmovsd xmm1, qword [alpha_psi]
-    vmovsd xmm2, qword [beta_phi]
-    vmovsd xmm3, qword [beta_psi]
-    vmovsd xmm4, qword [half]
+    ; Carica i parametri
+    mov     rdi, [rbp + 16] ; phi
+    mov     rsi, [rbp + 24] ; psi
+   
+    ; Inizializza i valori costanti
+    vmovsd  xmm0, qword [alpha_phi]
+    vbroadcastsd ymm0, xmm0
+    vmovsd  xmm1, qword [alpha_psi]
+    vbroadcastsd ymm1, xmm1
+    vmovsd  xmm2, qword [beta_phi]
+    vbroadcastsd ymm2, xmm2
+    vmovsd  xmm3, qword [beta_psi]
+    vbroadcastsd ymm3, xmm3
 
-    mov rsi, 0
-    vxorpd ymm5, ymm5, ymm5
+    ; Inizializza energia a zero
+    vxorpd  ymm4, ymm4, ymm4
+
+    ; Loop per calcolare l'energia
+    mov     rcx, 256        ; n = 256
+    xor     r8, r8          ; i = 0
 
 .loop:
-    cmp rsi, 256
-    jge .end_loop
+    ; Carica phi[i] e psi[i]
+    vmovsd  xmm5, qword [rdi + r8 * 8]
+    vbroadcastsd ymm5, xmm5 ;phi[i]
+    vmovsd  xmm6, qword [rsi + r8 * 8]
+    vbroadcastsd ymm6, xmm6 ;psi[i]
 
-    vmovsd xmm6, qword [rdi + rsi * 8]
-    vmovsd xmm7, qword [rsi + rsi * 8]
+    ; Calcola (phi[i] - alpha_phi)^2
+    vsubpd  ymm7, ymm5, ymm0
+    vmulpd  ymm7, ymm7, ymm7
 
-    vsubsd xmm8, xmm6, xmm0
-    vmulsd xmm8, xmm8, xmm8
+    ; Calcola (psi[i] - alpha_psi)^2
+    vsubpd  ymm8, ymm6, ymm1
+    vmulpd  ymm8, ymm8, ymm8
 
-    vsubsd xmm9, xmm7, xmm1
-    vmulsd xmm9, xmm9, xmm9
+    ; Somma i quadrati
+    vaddpd  ymm7, ymm7, ymm8
 
-    vaddsd xmm8, xmm8, xmm9
-    vsqrtsd xmm8, xmm8, xmm8
+    ; Calcola la radice quadrata
+    vsqrtpd ymm7, ymm7
 
-    vsubsd xmm9, xmm6, xmm2
-    vmulsd xmm9, xmm9, xmm9
+    ; Calcola (phi[i] - beta_phi)^2
+    vsubpd  ymm8, ymm5, ymm2
+    vmulpd  ymm8, ymm8, ymm8
 
-    vsubsd xmm10, xmm7, xmm3
-    vmulsd xmm10, xmm10, xmm10
+    ; Calcola (psi[i] - beta_psi)^2
+    vsubpd  ymm9, ymm6, ymm3
+    vmulpd  ymm9, ymm9, ymm9
 
-    vaddsd xmm9, xmm9, xmm10
-    vsqrtsd xmm9, xmm9, xmm9
+    ; Somma i quadrati
+    vaddpd  ymm8, ymm8, ymm9
 
-    vminsd xmm8, xmm8, xmm9
-    vmulsd xmm8, xmm8, xmm4
-    vaddsd xmm5, xmm5, xmm8
+    ; Calcola la radice quadrata
+    vsqrtpd ymm8, ymm8
 
-    add rsi, 1
-    jmp .loop
+    ; Trova il minimo tra alpha_dist e beta_dist
+    vminpd  ymm7, ymm7, ymm8
 
-.end_loop:
-    vmovsd qword [rdx], xmm5
+    ; Somma 0.5 * min
+    vmulpd  ymm7, ymm7, [half]
+    vaddpd  ymm4, ymm4, ymm7
+
+    ; Incrementa l'indice
+    inc     r8
+    loop    .loop
+
+    
+    ; Salva il risultato in rama
+    vmovsd  qword [rdx], xmm4
+
+    ; Epilogo
+    popaq                   ; ripristina i registri generali
+    mov     rsp, rbp        ; ripristina lo Stack Pointer
+    pop     rbp             ; ripristina il Base Pointer
+    ret                     ; torna alla funzione C chiamante
 
 
-		popaq				; ripristina i registri generali
-		mov		rsp, rbp	; ripristina lo Stack Pointer
-		pop		rbp		    ; ripristina il Base Pointer
-		ret				    ; torna alla funzione C chiamante
