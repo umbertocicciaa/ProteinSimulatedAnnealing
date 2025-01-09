@@ -383,7 +383,7 @@ MATRIX backbone(char *s, int n, VECTOR phi, VECTOR psi)
     return coords;
 }
 
-void hydrophobic_energy(char *s, int n, MATRIX coords, type* result)
+type hydrophobic_energy(char *s, int n, MATRIX coords)
 {
     type energy = 0;
     int i, j, k;
@@ -419,7 +419,7 @@ void hydrophobic_energy(char *s, int n, MATRIX coords, type* result)
                 energy = energy + (hydrophobicity[pos_i] * hydrophobicity[pos_j]) / dist;
         }
     }
-    *result = energy;
+    return energy;
 }
 
 type electrostatic_energy(char *s, int n, MATRIX coords)
@@ -508,8 +508,7 @@ type energy(char *s, int n, VECTOR phi, VECTOR psi)
     MATRIX coords = backbone(s, n, phi, psi);
     type rama;
     rama_energy_assembly(phi, psi, &rama);
-    type hydro;
-    hydrophobic_energy(s, n, coords, &hydro);
+    type hydro=hydrophobic_energy(s, n, coords);
     type elec = electrostatic_energy(s, n, coords);
     type pack = packing_energy(s, n, coords);
 

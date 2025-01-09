@@ -6,6 +6,11 @@ alpha_psi dq -47.0
 beta_phi  dq -119.0
 beta_psi  dq 113.0
 half      dq 0.5
+
+ten       dq 10.0
+four      dq 4.0
+
+charge dq 0.0, -1.0, 0.0, -1.0, -1.0, 0.0, 0.0, 0.5, 0.0, -1.0, 1.0, 0.0, 0.0, 0.0, -1.0, 0.0, 0.0, 1.0, 0.0, 0.0, -1.0, 0.0, 0.0, -1.0, 0.0, -1.0
  
 section .bss            
  
@@ -94,6 +99,84 @@ rama_energy_assembly:
     pop     rbp            
     ret                    
  
- 
- 
- 
+ global electrostatic_energy_assembly
+
+ electrostatic_energy_assembly:
+;prologo
+    push    rbp            
+    mov     rbp, rsp      
+    pushaq      
+
+;elaborazione
+ ; Load parameters
+    mov     rdi, [rbp + 16]  ; char *s
+    mov     rsi, [rbp + 24]  ; int n
+    mov     rdx, [rbp + 32]  ; MATRIX coords
+    mov     r8, 0            ; i = 0
+    vxorpd  ymm0, ymm0, ymm0 ; energy = 0
+
+.loop_i:
+    cmp     r8, rsi
+    jge     .end_loop_i
+
+    ; Load coords_c_alpha_i
+    mov     r9, r8
+    imul    r9, r9, 72       ; idx_i = i * 3 * 3 * 8
+    vmovupd ymm1, [rdx + r9 + 24]
+    
+
+    ; Load charge_i
+    movzx   eax, byte [rdi + r8]
+    sub     eax, 65
+    vmovsd  xmm2, qword [charge + rax * 8]
+    vbroadcastsd ymm2, xmm2
+
+    ; Inner loop
+    mov     r10, r8
+    inc     r10
+
+.loop_j:
+    cmp     r10, rsi
+    jge     .end_loop_j
+
+    ; Load coords_c_alpha_j
+    mov     r11, r10
+    imul    r11, r11, 72      ; idx_j = j * 3 * 3 * 8
+    vmovupd ymm3, [rdx + r11 + 24]
+
+    ; Load charge_j
+    movzx   eax, byte [rdi + r10]
+    sub     eax, 65
+    vmovsd  xmm4, qword [charge + rax * 8]
+    vbroadcastsd ymm4, xmm4
+
+    ; Calculate distance
+    vsubpd  ymm5, ymm3, ymm1
+    vmulpd  ymm5, ymm5, ymm5
+    vhaddpd ymm5, ymm5, ymm5
+    vhaddpd ymm5, ymm5, ymm5
+    vsqrtpd ymm5, ymm5
+
+    ; Calculate energy contribution
+    vcmppd  ymm6, ymm5, [ten], 1 ; Compare dist < 10.0
+    vmulpd  ymm7, ymm2, ymm4
+    vdivpd  ymm7, ymm7, ymm5
+    vdivpd  ymm7, ymm7, [four]
+    vandpd  ymm7, ymm7, ymm6
+    vaddpd  ymm0, ymm0, ymm7
+
+    inc     r10
+    jmp     .loop_j
+
+.end_loop_j:
+    inc     r8
+    jmp     .loop_i
+
+.end_loop_i:
+    ; Store result
+    vmovsd  qword [rbp + 40], xmm0
+ ;epilogo
+    popaq                
+    mov     rsp, rbp      
+    pop     rbp            
+    ret                    
