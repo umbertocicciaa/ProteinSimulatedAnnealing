@@ -476,25 +476,20 @@ type packing_energy(char *s, int n, MATRIX coords)
 type energy(char *s, int n, VECTOR phi, VECTOR psi)
 {
 	MATRIX coords = backbone(s, n, phi, psi);
-
 	type rama;
 	rama_energy_assembly(phi, psi, &rama);
-
 	type hydro;
 	hydrophobic_energy_assembly(s, &n, coords, &hydro);
-
     type elec;
 	electrostatic_energy_assembly(s, &n, coords, &elec);
-	
 	type pack = packing_energy(s, n, coords);
-
+	
 	VECTOR v1 = alloc_matrix(1, 4);
-    
     v1[0] = rama * 1.0;
     v1[1] = hydro * 0.5;
     v1[2] = elec * 0.2;
     v1[3] = pack * 0.3;
-
+	
     return v1[0] + v1[1] + v1[2] + v1[3];
 }
 
