@@ -1,44 +1,3 @@
-/**************************************************************************************
- *
- * CdL Magistrale in Ingegneria Informatica
- * Corso di Architetture e Programmazione dei Sistemi di Elaborazione - a.a. 2024/25
- *
- * Progetto dell'algoritmo Predizione struttura terziaria proteine 221 231 a
- * in linguaggio assembly x86-32 + SSE
- *
- * F. Angiulli F. Fassetti S. Nisticò, novembre 2024
- *
- **************************************************************************************/
-
-/*
- *
- * Software necessario per l'esecuzione:
- *
- *    NASM (www.nasm.us)
- *    GCC (gcc.gnu.org)
- *
- * entrambi sono disponibili come pacchetti software
- * installabili mediante il packaging tool del sistema
- * operativo; per esempio, su Ubuntu, mediante i comandi:
- *
- *    sudo apt-get install nasm
- *    sudo apt-get install gcc
- *
- * potrebbe essere necessario installare le seguenti librerie:
- *
- *    sudo apt-get install lib32gcc-4.8-dev (o altra versione)
- *    sudo apt-get install libc6-dev-i386
- *
- * Per generare il file eseguibile:
- *
- * nasm -f elf32 pst32.nasm && gcc -m32 -msse -O0 -no-pie sseutils32.o pst32.o pst32c.c -o pst32c -lm && ./pst32c $pars
- *
- * oppure
- *
- * ./runpst32
- *
- */
-
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
@@ -55,9 +14,14 @@
 
 #define random() (((type)rand()) / RAND_MAX)
 
-type hydrophobicity[] = {1.8, -1, 2.5, -3.5, -3.5, 2.8, -0.4, -3.2, 4.5, -1, -3.9, 3.8, 1.9, -3.5, -1, -1.6, -3.5, -4.5, -0.8, -0.7, -1, 4.2, -0.9, -1, -1.3, -1};				   // hydrophobicity
-type volume[] = {88.6, -1, 108.5, 111.1, 138.4, 189.9, 60.1, 153.2, 166.7, -1, 168.6, 166.7, 162.9, 114.1, -1, 112.7, 143.8, 173.4, 89.0, 116.1, -1, 140.0, 227.8, -1, 193.6, -1}; // volume
-type charge[] = {0, -1, 0, -1, -1, 0, 0, 0.5, 0, -1, 1, 0, 0, 0, -1, 0, 0, 1, 0, 0, -1, 0, 0, -1, 0, -1};																		   // charge
+const type hydrophobicity[] = {1.8, -1, 2.5, -3.5, -3.5, 2.8, -0.4, -3.2, 4.5, -1, -3.9, 3.8, 1.9, -3.5, -1, -1.6, -3.5, -4.5, -0.8, -0.7, -1, 4.2, -0.9, -1, -1.3, -1};				  
+const type volume[] = {88.6, -1, 108.5, 111.1, 138.4, 189.9, 60.1, 153.2, 166.7, -1, 168.6, 166.7, 162.9, 114.1, -1, 112.7, 143.8, 173.4, 89.0, 116.1, -1, 140.0, 227.8, -1, 193.6, -1}; 
+const type charge[] = {0, -1, 0, -1, -1, 0, 0, 0.5, 0, -1, 1, 0, 0, 0, -1, 0, 0, 1, 0, 0, -1, 0, 0, -1, 0, -1};																		  
+
+const type uno=1.0;
+const type zeroPunto5=0.5;
+const type zeroPunto2=0.2;
+const type zeroPunto3=0.3;
 
 typedef struct
 {
@@ -431,7 +395,6 @@ MATRIX backbone(char *s, int n, VECTOR phi, VECTOR psi)
 	return coords;
 }
 
-
 type packing_energy(char *s, int n, MATRIX coords)
 {
 	type energy = 0;
@@ -476,37 +439,15 @@ type packing_energy(char *s, int n, MATRIX coords)
 type energy(char *s, int n, VECTOR phi, VECTOR psi)
 {
 	MATRIX coords = backbone(s, n, phi, psi);
-
 	type rama;
 	rama_energy_assembly(phi, psi, &rama);
-
 	type hydro;
 	hydrophobic_energy_assembly(s, &n, coords, &hydro);
-
-    type elec;
+	type elec;
 	electrostatic_energy_assembly(s, &n, coords, &elec);
-	
 	type pack = packing_energy(s, n, coords);
 
-	VECTOR v1 = alloc_matrix(1, 4);
-
-	v1[0] = rama;
-	v1[1] = hydro;
-	v1[2] = elec;
-	v1[3] = pack;
-
-	const type w_rama = 1.0;
-	const type w_hydro = 0.5;
-	const type w_elec = 0.2;
-	const type w_pack = 0.3;
-
-	v1[0] = v1[0] * w_rama;
-	v1[1] = v1[1] * w_hydro;
-
-	v1[2] = v1[2] * w_elec;
-	v1[3] = v1[3] * w_pack;
-
-	return v1[0] + v1[1] + v1[2] + v1[3];
+    return (rama * uno) +(hydro * zeroPunto5) +(elec * zeroPunto2) + (pack * zeroPunto3);
 }
 
 void pst(params *input)

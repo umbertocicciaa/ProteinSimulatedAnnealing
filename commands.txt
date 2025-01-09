@@ -1,5 +1,28 @@
 comandi per eseguire i file da terminale
+32
+COMPILARE NASM:nasm -f elf32 pst32c_ASSEMBLY.nasm
+COMPILARE GCC: gcc -m32 -msse -O0 -no-pie pst32c.c -o pst32c  pst32c_ASSEMBLY.o -lm
+ESEGUIRE: ./pst32c -seq seq_256.ds2 -to 20 -alpha 1 -k 1 -sd 3 -d
 
-COMPILARE NASM: nasm -f elf32 pst32_fun.nasm
-COMPILARE GCC: gcc -m32 -msse -O0 -no-pie pst32c_VECTOR.c -o pst32c_VECTOR pst32_fun.o -lm
-ESEGUIRE: ./pst32c_VECTOR -seq seq_256.ds2 -to 20 -alpha 1 -k 1 -sd 3 -d
+64:
+COMPILARE NASM:nasm -f elf64 sseutils64.nasm
+compilare file assembly 64: nasm -f elf64 pst64.nasm
+COMPILARE GCC: gcc -m64 -msse -mavx -O0 -no-pie *64.o pst64c.c -o pst64 -lm
+./pst64 -seq seq_256.ds2 -to 20 -alpha 1 -k 1 -sd 3 -d
+
+read:
+Gcc: gcc -o read read_res.c
+     ./read
+
+file test:
+nasm -f elf64 pst64.nasm
+gcc -m64 -msse -mavx -O0 -no-pie *pst64.o test.c -o test64 -lm
+./test64
+
+open MP:
+gcc: gcc -m64 -msse -mavx -O0 -no-pie -fopenmp *64.o pst64c_omp.c -o pst64_omp -lm
+./pst64_omp -seq seq_256.ds2 -to 20 -alpha 1 -k 1 -sd 3 -d
+
+in gdb 
+Controlla il valore di rsi:  info registers rsi
+Controlla il contenuto dell'indirizzo puntato da rsi: x/8gx $rsi

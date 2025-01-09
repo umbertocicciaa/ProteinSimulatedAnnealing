@@ -115,7 +115,7 @@ char* load_seq(char* filename, int *n, int *k) {
 int main(){
     int rows;
 	int cols;
-	char f[256] = "./phi_float.ds2";
+	char f[256] = "../src32/energy_float.ds2";
 	MATRIX phi = load_data(f, &rows, &cols);
 	printf("rows: %i, cols: %i\n", rows, cols);
 	int i;

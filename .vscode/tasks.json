@@ -20,6 +20,7 @@
             "problemMatcher": [],
             "detail": "Compiles the assembly file with NASM to ELF32 object file"
         },
+
         {
             "label": "gcc link active object file",
             "type": "shell",
@@ -42,6 +43,7 @@
             "problemMatcher": [],
             "detail": "Links the object file with GCC to create an executable"
         },
+
         {
             "label": "gcc link active object file no debugger",
             "type": "shell",
@@ -63,6 +65,7 @@
             "problemMatcher": [],
             "detail": "Links the object file with GCC to create an executable no debugger"
         },
+
         {
             "label": "run both build tasks",
             "type": "shell",
@@ -75,6 +78,7 @@
             "problemMatcher": [],
             "detail": "Runs both NASM and GCC tasks in sequence"
         },
+
         {
             "label": "run both build tasks no debugger",
             "type": "shell",
@@ -87,6 +91,7 @@
             "problemMatcher": [],
             "detail": "Runs both NASM and GCC tasks in sequence no debugger"
         },
+
         {
             "label": "gcc only c",
             "type": "shell",
@@ -108,6 +113,7 @@
             "problemMatcher": [],
             "detail": "Only C"
         },
+
         {
             "label": "gcc only c no debug",
             "type": "shell",
@@ -127,6 +133,62 @@
             },
             "problemMatcher": [],
             "detail": "Only C no debug"
+        },
+
+        {
+            "label": "nasm build active file avx",
+            "type": "shell",
+            "command": "/usr/bin/nasm",
+            "args": [
+                "-f", 
+                "elf64", 
+                "${fileDirname}/${fileBasenameNoExtension}_ASSEMBLY.nasm"
+            ],
+            "options": {
+                "cwd": "${fileDirname}" 
+            },
+            "group": {
+                "kind": "build",
+                "isDefault": false
+            },
+            "problemMatcher": [],
+            "detail": "Compiles the assembly file with NASM to ELF64 object file"
+        },
+
+        {
+            "label": "gcc link active object file no debugger avx",
+            "type": "shell",
+            "command": "/usr/bin/gcc",
+            "args": [
+                "-m64", 
+                "-msse",
+                "-mavx" ,
+                "-O0",
+                "-no-pie", 
+                "${fileDirname}/${fileBasenameNoExtension}.c",
+                "-o", "${fileDirname}/${fileBasenameNoExtension}",
+                "${fileDirname}/${fileBasenameNoExtension}_ASSEMBLY.o",
+                "-lm"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": false
+            },
+            "problemMatcher": [],
+            "detail": "Links the object file with GCC to create an executable no debugger"
+        },
+
+        {
+            "label": "run both build tasks no debugger avx",
+            "type": "shell",
+            "command": "echo Running both NASM and GCC tasks...",
+            "dependsOn": [
+                "nasm build active file avx",
+                "gcc link active object file no debugger avx"
+            ],
+            "group": "build",
+            "problemMatcher": [],
+            "detail": "Runs both NASM and GCC tasks in sequence no debugger avx"
         },
     ]
 }

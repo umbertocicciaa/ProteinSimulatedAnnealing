@@ -1,36 +1,7 @@
-; ---------------------------------------------------------
-; Predizione struttura terziaria con istruzioni SSE a 32 bit
-; ---------------------------------------------------------
-
-; 23/11/2017
-;
-
-;
-; Software necessario per l'esecuzione:
-;
-;     NASM (www.nasm.us)
-;     GCC (gcc.gnu.org)
-;
-; entrambi sono disponibili come pacchetti software 
-; installabili mediante il packaging tool del sistema 
-; operativo; per esempio, su Ubuntu, mediante i comandi:
-;
-;     sudo apt-get install nasm
-;     sudo apt-get install gcc
-;
-; potrebbe essere necessario installare le seguenti librerie:
-;
-;     sudo apt-get install lib32gcc-4.8-dev (o altra versione)
-;     sudo apt-get install libc6-dev-i386
-;
-; Per generare file oggetto:
-;
-;     nasm -f elf32 fss32.nasm 
-;
 %include "sseutils32.nasm"
 
 section .data	
-	;rana energy
+	
     alpha_phi dd -57.8
     alpha_psi dd -47.0
     beta_phi dd -119.0
@@ -143,26 +114,26 @@ hydrophobic_energy_assembly:
     push esi
     push edi
 
-    mov eax, [ebp + 8]  ; s
-    mov ebx, [ebp + 12] ; n
-    mov ecx, [ebp + 16] ; coords
-    mov edx, [ebp + 20] ; result
+    mov eax, [ebp + 8]  
+    mov ebx, [ebp + 12] 
+    mov ecx, [ebp + 16] 
+    mov edx, [ebp + 20] 
 
-    xorps xmm0, xmm0    ; energy = 0
+    xorps xmm0, xmm0    
 
-    mov esi, 0          ; i = 0
+    mov esi, 0          
     .outer_loop:
         cmp esi, ebx
         jge .end_outer_loop
 
         mov edi, esi
-        add edi, 1      ; j = i + 1
+        add edi, 1      
 
         mov eax, ecx
         add eax, esi
         shl eax, 2
         add eax, ecx
-        movaps xmm1, [eax + 12] ; coords_c_alpha_i
+        movaps xmm1, [eax + 12] 
 
         .inner_loop:
             cmp edi, ebx
@@ -172,7 +143,7 @@ hydrophobic_energy_assembly:
             add eax, edi
             shl eax, 2
             add eax, ecx
-            movaps xmm2, [eax + 12] ; coords_c_alpha_j
+            movaps xmm2, [eax + 12] 
 
             movaps xmm3, xmm2
             subps xmm3, xmm1
@@ -182,7 +153,7 @@ hydrophobic_energy_assembly:
             movaps xmm4, xmm3
             shufps xmm4, xmm4, 1
             addss xmm3, xmm4
-            sqrtss xmm3, xmm3                ; dist = sqrtf(...)
+            sqrtss xmm3, xmm3                
 
             movzx edx, byte [eax + esi]
             sub edx, 65
@@ -222,26 +193,26 @@ electrostatic_energy_assembly:
     push esi
     push edi
 
-    mov eax, [ebp + 8]  ; s
-    mov ebx, [ebp + 12] ; n
-    mov ecx, [ebp + 16] ; coords
-    mov edx, [ebp + 20] ; result
+    mov eax, [ebp + 8]  
+    mov ebx, [ebp + 12] 
+    mov ecx, [ebp + 16] 
+    mov edx, [ebp + 20] 
 
-    xorps xmm0, xmm0    ; energy = 0
+    xorps xmm0, xmm0    
 
-    mov esi, 0          ; i = 0
+    mov esi, 0          
     .outer_loop:
         cmp esi, ebx
         jge .end_outer_loop
 
         mov edi, esi
-        add edi, 1      ; j = i + 1
+        add edi, 1     
 
         mov eax, ecx
         add eax, esi
         shl eax, 4
         add eax, ecx
-        movaps xmm1, [eax + 12] ; coords_c_alpha_i
+        movaps xmm1, [eax + 12] 
 
         .inner_loop:
             cmp edi, ebx
@@ -251,7 +222,7 @@ electrostatic_energy_assembly:
             add eax, edi
             shl eax, 4
             add eax, ecx
-            movaps xmm2, [eax + 12] ; coords_c_alpha_j
+            movaps xmm2, [eax + 12] 
 
             movaps xmm3, xmm2
             subps xmm3, xmm1
@@ -261,7 +232,7 @@ electrostatic_energy_assembly:
             movaps xmm4, xmm3
             shufps xmm4, xmm4, 1
             addss xmm3, xmm4
-            sqrtss xmm3, xmm3                ; dist = sqrtf(...)
+            sqrtss xmm3, xmm3                
 
             movzx edx, byte [eax + esi]
             sub edx, 65
