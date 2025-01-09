@@ -164,7 +164,6 @@ void gen_rnd_mat(VECTOR v, int N)
 
     for (i = 0; i < N; i++)
     {
-        // Campionamento del valore + scalatura
         v[i] = (random() * 2 * M_PI) - M_PI;
     }
 }
@@ -522,16 +521,11 @@ type energy(char *s, int n, VECTOR phi, VECTOR psi)
 
 void pst(params *input)
 {
-    // --------------------------------------------------------------
-    // Codificare qui l'algoritmo di Predizione struttura terziaria
-    // --------------------------------------------------------------
-
     type E = energy(input->seq, input->N, input->phi, input->psi);
     type T = input->to;
 
     int t = 0;
     printf("Energia iniziale:%f\n", E);
-    // exit(0);
 
     while (T > 0)
     {
@@ -553,7 +547,6 @@ void pst(params *input)
         }
         else
         {
-
             type P = exp(-delta_E / (input->k * T));
             type r = (type)rand() / RAND_MAX;
 
