@@ -190,5 +190,64 @@
             "problemMatcher": [],
             "detail": "Runs both NASM and GCC tasks in sequence no debugger avx"
         },
+
+        {
+            "label": "nasm build active file openmp",
+            "type": "shell",
+            "command": "/usr/bin/nasm",
+            "args": [
+                "-f", 
+                "elf64", 
+                "${fileDirname}/${fileBasenameNoExtension}_ASSEMBLY.nasm"
+            ],
+            "options": {
+                "cwd": "${fileDirname}" 
+            },
+            "group": {
+                "kind": "build",
+                "isDefault": false
+            },
+            "problemMatcher": [],
+            "detail": "Compiles the assembly file with NASM to ELF64 object file"
+        },
+
+        {
+            "label": "gcc link active object file no debugger openmp",
+            "type": "shell",
+            "command": "/usr/bin/gcc",
+            "args": [
+                "-m64", 
+                "-msse",
+                "-mavx" ,
+                "-O0",
+                "-no-pie", 
+                "-fopenmp",
+                "${fileDirname}/${fileBasenameNoExtension}.c",
+                "-o", "${fileDirname}/${fileBasenameNoExtension}",
+                "${fileDirname}/${fileBasenameNoExtension}_ASSEMBLY.o",
+                "-lm"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": false
+            },
+            "problemMatcher": [],
+            "detail": "Links the object file with GCC to create an executable no debugger"
+        },
+
+        {
+            "label": "run both build tasks no debugger openmp",
+            "type": "shell",
+            "command": "echo Running both NASM and GCC tasks...",
+            "dependsOn": [
+                "nasm build active file openmp",
+                "gcc link active object file no debugger openmp"
+            ],
+            "group": "build",
+            "problemMatcher": [],
+            "detail": "Runs both NASM and GCC tasks in sequence no debugger openmp"
+        },
+
+
     ]
 }

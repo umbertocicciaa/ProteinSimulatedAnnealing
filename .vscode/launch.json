@@ -111,6 +111,26 @@
             "preLaunchTask": "run both build tasks no debugger avx"  
         },
 
-        
+        {
+            "name": "64b OPENMP Build and debug C and assembly no debugger",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/src-open/${fileBasenameNoExtension}",
+            "args": [
+                "-seq", "seq_256.ds2", 
+                "-to", "20", 
+                "-alpha", "1", 
+                "-k", "1", 
+                "-sd", "3", 
+                "-d"
+            ],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}/src64/",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "miDebuggerPath": "/usr/bin/gdb",  
+            "preLaunchTask": "run both build tasks no debugger openmp"  
+        },
     ]
 }
