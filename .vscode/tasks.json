@@ -198,7 +198,7 @@
             "args": [
                 "-f", 
                 "elf64", 
-                "${fileDirname}/${fileBasenameNoExtension}_ASSEMBLY.nasm"
+                "${fileDirname}/${fileBasenameNoExtension}.nasm"
             ],
             "options": {
                 "cwd": "${fileDirname}" 
@@ -222,9 +222,9 @@
                 "-O0",
                 "-no-pie", 
                 "-fopenmp",
+                "${fileDirname}/${fileBasenameNoExtension}.o",
                 "${fileDirname}/${fileBasenameNoExtension}.c",
                 "-o", "${fileDirname}/${fileBasenameNoExtension}",
-                "${fileDirname}/${fileBasenameNoExtension}_ASSEMBLY.o",
                 "-lm"
             ],
             "group": {
