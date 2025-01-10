@@ -7,7 +7,6 @@
 #include <xmmintrin.h>
 #include <malloc.h>
 #include <stdint.h>
-#include <omp.h>
 
 #define type double
 #define MATRIX type *
@@ -442,7 +441,7 @@ type electrostatic_energy(char *s, int n, MATRIX coords)
         coords_c_alpha_i[2] = coords[idx_i + 2];
         coords_c_alpha_i[3] = 0;
         
-        #pragma omp parallel for
+       
         for (j = i + 1; j < n; j++)
         {
 

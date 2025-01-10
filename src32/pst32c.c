@@ -459,7 +459,7 @@ void pst(params *input)
 	type T = input->to;
 
 	int t = 0;
-	printf("Energia iniziale:%f\n", E);
+	
 
 	while (T > 0)
 	{
