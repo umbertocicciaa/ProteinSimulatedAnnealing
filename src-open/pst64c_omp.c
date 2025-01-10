@@ -432,6 +432,7 @@ type electrostatic_energy(char *s, int n, MATRIX coords)
     VECTOR coords_c_alpha_i = alloc_matrix(1, 4);
     VECTOR coords_c_alpha_j = alloc_matrix(1, 4);
 
+    
     for (i = 0; i < n; i++)
     {
 
@@ -485,7 +486,7 @@ type packing_energy(char *s, int n, MATRIX coords)
         coords_c_alpha_i[1] = coords[idx_i + 1];
         coords_c_alpha_i[2] = coords[idx_i + 2];
         coords_c_alpha_i[3] = 0;
-
+        
         for (j = 0; j < n; j++)
         {
             int idx_j = j * 3 * 3 + 3;
@@ -748,10 +749,12 @@ int main(int argc, char **argv)
     //
     // Predizione struttura terziaria
     //
-    t = clock();
+
+    type startTime=omp_get_wtime();
     pst(input);
-    t = clock() - t;
-    time = ((float)t) / CLOCKS_PER_SEC;
+    type  endTime=omp_get_wtime();
+
+    time = endTime-startTime;
 
     if (!input->silent)
         printf("PST time = %.3f secs\n", time);
