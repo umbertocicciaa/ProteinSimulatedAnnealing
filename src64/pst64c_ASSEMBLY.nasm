@@ -7,6 +7,12 @@ beta_phi  dq -119.0
 beta_psi  dq 113.0
 half      dq 0.5
 
+align 8
+ten:    dq 10.0
+four:   dq 4.0
+charge dq 0.0, -1.0, 0.0, -1.0, -1.0, 0.0, 0.0, 0.5, 0.0, -1.0, 1.0, 0.0, 0.0, 0.0, -1.0, 0.0, 0.0, 1.0, 0.0, 0.0, -1.0, 0.0, 0.0, -1.0, 0.0, -1.0
+
+hydrophobicity dq 1.8, -1.0, 2.5, -3.5, -3.5, 2.8, -0.4, -3.2, 4.5, -1.0, -3.9, 3.8, 1.9, -3.5, -1.0, -1.6, -3.5, -4.5, -0.8, -0.7, -1.0, 4.2, -0.9, -1.0, -1.3, -1.0
  
 section .bss            
  
@@ -94,3 +100,167 @@ rama_energy_assembly:
     mov     rsp, rbp      
     pop     rbp            
     ret                    
+
+global electrostatic_energy_assembly
+
+electrostatic_energy_assembly:
+;prologo
+    push    rbp            
+    mov     rbp, rsp      
+    pushaq      
+
+
+    vxorpd xmm0, xmm0, xmm0    
+    
+    xor r8, r8                 
+outer_loop:
+    cmp r8, rsi                 
+    jge done
+    
+   
+    mov r9, r8
+    imul r9, 9
+    add r9, 3
+    
+    
+    vmovupd ymm1, [rdx + r9*8] 
+    
+  
+    mov r10, r8
+    inc r10
+    
+inner_loop:
+    cmp r10, rsi               
+    jge outer_loop_end
+    
+    
+    mov r11, r10
+    imul r11, 9
+    add r11, 3
+    
+    
+    vmovupd ymm2, [rdx + r11*8] 
+    
+    
+    vsubpd ymm3, ymm2, ymm1     
+    vmulpd ymm3, ymm3, ymm3     
+    vhaddpd ymm3, ymm3, ymm3    
+    vhaddpd ymm3, ymm3, ymm3    
+    
+    vsqrtpd ymm3, ymm3         
+    
+    
+    vmovsd xmm4, [rel ten]
+    vucomisd xmm3, xmm4
+    jae skip_update
+    
+
+    movzx r12, byte [rdi + r8]  
+    sub r12, 65                 
+    movzx r13, byte [rdi + r10] 
+    sub r13, 65                 
+    
+    vmovsd xmm4, [rel charge + r12*8]
+    vmovsd xmm5, [rel charge + r13*8]
+    
+    
+    vxorpd xmm6, xmm6, xmm6
+    vucomisd xmm4, xmm6
+    je skip_update
+    vucomisd xmm5, xmm6
+    je skip_update
+    
+    
+    vmulsd xmm4, xmm4, xmm5    
+    vmulsd xmm5, xmm3, [rel four] 
+    vdivsd xmm4, xmm4, xmm5     
+    vaddsd xmm0, xmm0, xmm4     
+    
+skip_update:
+    inc r10
+    jmp inner_loop
+    
+outer_loop_end:
+    inc r8
+    jmp outer_loop
+    
+done:
+    vmovsd [rcx], xmm0          
+    
+    popaq                       
+    mov rsp, rbp
+    pop rbp
+    ret
+
+
+global hydrophobic_energy_assembly
+hydrophobic_energy_assembly:
+    push    rbp            
+    mov     rbp, rsp
+    pushaq                 
+
+
+    
+    vxorpd xmm0, xmm0, xmm0   
+    
+    xor r8, r8                
+outer_loop_hydro:
+    cmp r8, rsi                
+    jge done_hydro
+    
+    mov r9, r8
+    imul r9, 9
+    add r9, 3
+    
+    vmovupd ymm1, [rdx + r9*8]  
+    
+    mov r10, r8
+    inc r10                    
+    
+inner_loop_hydro:
+    cmp r10, rsi               
+    jge outer_loop_end_hydro
+    
+    mov r11, r10
+    imul r11, 9
+    add r11, 3
+    
+    vmovupd ymm2, [rdx + r11*8] 
+    
+    vsubpd ymm3, ymm2, ymm1     
+    vmulpd ymm3, ymm3, ymm3     
+    vhaddpd ymm3, ymm3, ymm3    
+    vhaddpd ymm3, ymm3, ymm3    
+    vsqrtpd ymm3, ymm3          
+
+    vmovsd xmm4, [rel ten]
+    vucomisd xmm3, xmm4
+    jae skip_update_hydro            
+    
+    movzx r12, byte [rdi + r8]  
+    sub r12, 65                 
+    movzx r13, byte [rdi + r10] 
+    sub r13, 65                 
+    
+    vmovsd xmm4, [rel hydrophobicity + r12*8]
+    vmovsd xmm5, [rel hydrophobicity + r13*8]
+    
+    vmulsd xmm4, xmm4, xmm5     
+    vdivsd xmm4, xmm4, xmm3     
+    vaddsd xmm0, xmm0, xmm4     
+    
+skip_update_hydro:
+    inc r10
+    jmp inner_loop_hydro
+    
+outer_loop_end_hydro:
+    inc r8
+    jmp outer_loop_end_hydro
+    
+done_hydro:
+    vmovsd [rcx], xmm0          
+    
+    popaq                       
+    mov rsp, rbp
+    pop rbp
+    ret
