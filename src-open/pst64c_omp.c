@@ -15,14 +15,14 @@
 
 #define random() (((type)rand()) / RAND_MAX)
 
-const type hydrophobicity[] = {1.8, -1, 2.5, -3.5, -3.5, 2.8, -0.4, -3.2, 4.5, -1, -3.9, 3.8, 1.9, -3.5, -1, -1.6, -3.5, -4.5, -0.8, -0.7, -1, 4.2, -0.9, -1, -1.3, -1};                 
-const type volume[] = {88.6, -1, 108.5, 111.1, 138.4, 189.9, 60.1, 153.2, 166.7, -1, 168.6, 166.7, 162.9, 114.1, -1, 112.7, 143.8, 173.4, 89.0, 116.1, -1, 140.0, 227.8, -1, 193.6, -1}; 
-const type charge[] = {0, -1, 0, -1, -1, 0, 0, 0.5, 0, -1, 1, 0, 0, 0, -1, 0, 0, 1, 0, 0, -1, 0, 0, -1, 0, -1};                                                                          
+const type hydrophobicity[] = {1.8, -1, 2.5, -3.5, -3.5, 2.8, -0.4, -3.2, 4.5, -1, -3.9, 3.8, 1.9, -3.5, -1, -1.6, -3.5, -4.5, -0.8, -0.7, -1, 4.2, -0.9, -1, -1.3, -1};
+const type volume[] = {88.6, -1, 108.5, 111.1, 138.4, 189.9, 60.1, 153.2, 166.7, -1, 168.6, 166.7, 162.9, 114.1, -1, 112.7, 143.8, 173.4, 89.0, 116.1, -1, 140.0, 227.8, -1, 193.6, -1};
+const type charge[] = {0, -1, 0, -1, -1, 0, 0, 0.5, 0, -1, 1, 0, 0, 0, -1, 0, 0, 1, 0, 0, -1, 0, 0, -1, 0, -1};
 
-const type uno =1.0;
-const type zeroPunto5=0.5;
-const type zeroPunto2=0.2;
-const type zeroPunto3=0.3;
+const type uno = 1.0;
+const type zeroPunto5 = 0.5;
+const type zeroPunto2 = 0.2;
+const type zeroPunto3 = 0.3;
 
 typedef struct
 {
@@ -175,6 +175,7 @@ void gen_rnd_mat(VECTOR v, int N)
 }
 
 extern void rama_energy_assembly(VECTOR phi, VECTOR psi, type *rama);
+extern void hydrophobic_energy_assembly(char *s, int n, MATRIX coords, type *hydro);
 
 void rotation(VECTOR axis, type theta, VECTOR rotation_matrix)
 {
@@ -236,7 +237,7 @@ MATRIX backbone(char *s, int n, VECTOR phi, VECTOR psi)
     coords[3] = r_ca_n;
     coords[4] = 0;
     coords[5] = 0;
-    
+
     VECTOR coords_c = alloc_matrix(1, 4);
     VECTOR coords_c_alpha = alloc_matrix(1, 4);
     VECTOR coords_n = alloc_matrix(1, 4);
@@ -386,45 +387,6 @@ MATRIX backbone(char *s, int n, VECTOR phi, VECTOR psi)
     return coords;
 }
 
-type hydrophobic_energy(char *s, int n, MATRIX coords)
-{
-    type energy = 0;
-    int i, j, k;
-    VECTOR coords_c_alpha_i = alloc_matrix(1, 4);
-    VECTOR coords_c_alpha_j = alloc_matrix(1, 4);
-
-    for (i = 0; i < n; i++)
-    {
-
-        int idx_i = i * 3 * 3 + 3;
-
-        coords_c_alpha_i[0] = coords[idx_i];
-        coords_c_alpha_i[1] = coords[idx_i + 1];
-        coords_c_alpha_i[2] = coords[idx_i + 2];
-        coords_c_alpha_i[3] = 0;
-
-        for (j = i + 1; j < n; j++)
-        {
-
-            int idx_j = j * 3 * 3 + 3;
-
-            coords_c_alpha_j[0] = coords[idx_j];
-            coords_c_alpha_j[1] = coords[idx_j + 1];
-            coords_c_alpha_j[2] = coords[idx_j + 2];
-            coords_c_alpha_j[3] = 0;
-
-            type dist;
-            dist = sqrtf((coords_c_alpha_j[0] - coords_c_alpha_i[0]) * (coords_c_alpha_j[0] - coords_c_alpha_i[0]) + (coords_c_alpha_j[1] - coords_c_alpha_i[1]) * (coords_c_alpha_j[1] - coords_c_alpha_i[1]) + (coords_c_alpha_j[2] - coords_c_alpha_i[2]) * (coords_c_alpha_j[2] - coords_c_alpha_i[2]));
-            int pos_i = s[i] - 65;
-            int pos_j = s[j] - 65;
-
-            if (dist < 10.0)
-                energy = energy + (hydrophobicity[pos_i] * hydrophobicity[pos_j]) / dist;
-        }
-    }
-    return energy;
-}
-
 type electrostatic_energy(char *s, int n, MATRIX coords)
 {
     type energy = 0;
@@ -432,42 +394,42 @@ type electrostatic_energy(char *s, int n, MATRIX coords)
     VECTOR coords_c_alpha_i = alloc_matrix(1, 4);
     VECTOR coords_c_alpha_j = alloc_matrix(1, 4);
 
-    
+#pragma omp parallel for num_threads(4)
     for (i = 0; i < n; i++)
     {
-
         int idx_i = i * 3 * 3 + 3;
 
         coords_c_alpha_i[0] = coords[idx_i];
         coords_c_alpha_i[1] = coords[idx_i + 1];
         coords_c_alpha_i[2] = coords[idx_i + 2];
         coords_c_alpha_i[3] = 0;
-        
-        #pragma omp parallel for
-        for (j = i + 1; j < n; j++)
-        {
 
-            int idx_j = j * 3 * 3 + 3;
+        inner_for_elec(i, n, coords, coords_c_alpha_i, coords_c_alpha_j, energy, s);
+    }
+    return energy;
+}
+void inner_for_elec(int i, int n, MATRIX coords, VECTOR coords_c_alpha_i, VECTOR coords_c_alpha_j, type energy, char *s)
+{
+    for (int j = i + 1; j < n; j++)
+    {
 
-            coords_c_alpha_j[0] = coords[idx_j];
-            coords_c_alpha_j[1] = coords[idx_j + 1];
-            coords_c_alpha_j[2] = coords[idx_j + 2];
-            coords_c_alpha_j[3] = 0;
-            type dist;
+        int idx_j = j * 3 * 3 + 3;
 
-            dist = sqrtf((coords_c_alpha_j[0] - coords_c_alpha_i[0]) * (coords_c_alpha_j[0] - coords_c_alpha_i[0]) + (coords_c_alpha_j[1] - coords_c_alpha_i[1]) * (coords_c_alpha_j[1] - coords_c_alpha_i[1]) + (coords_c_alpha_j[2] - coords_c_alpha_i[2]) * (coords_c_alpha_j[2] - coords_c_alpha_i[2]));
+        coords_c_alpha_j[0] = coords[idx_j];
+        coords_c_alpha_j[1] = coords[idx_j + 1];
+        coords_c_alpha_j[2] = coords[idx_j + 2];
+        coords_c_alpha_j[3] = 0;
+        type dist;
 
-            int pos_i = s[i] - 65;
-            int pos_j = s[j] - 65;
+        dist = sqrtf((coords_c_alpha_j[0] - coords_c_alpha_i[0]) * (coords_c_alpha_j[0] - coords_c_alpha_i[0]) + (coords_c_alpha_j[1] - coords_c_alpha_i[1]) * (coords_c_alpha_j[1] - coords_c_alpha_i[1]) + (coords_c_alpha_j[2] - coords_c_alpha_i[2]) * (coords_c_alpha_j[2] - coords_c_alpha_i[2]));
 
-            if (i != j && dist < 10.0 && charge[pos_i] != 0 && charge[pos_j] != 0)
-                energy = energy + (charge[pos_i] * charge[pos_j]) / (dist * 4.0);
-        }
-        
-        return energy;
+        int pos_i = s[i] - 65;
+        int pos_j = s[j] - 65;
+
+        if (i != j && dist < 10.0 && charge[pos_i] != 0 && charge[pos_j] != 0)
+            energy = energy + (charge[pos_i] * charge[pos_j]) / (dist * 4.0);
     }
 }
-
 type packing_energy(char *s, int n, MATRIX coords)
 {
     type energy = 0;
@@ -486,7 +448,7 @@ type packing_energy(char *s, int n, MATRIX coords)
         coords_c_alpha_i[1] = coords[idx_i + 1];
         coords_c_alpha_i[2] = coords[idx_i + 2];
         coords_c_alpha_i[3] = 0;
-        
+
         for (j = 0; j < n; j++)
         {
             int idx_j = j * 3 * 3 + 3;
@@ -514,10 +476,11 @@ type energy(char *s, int n, VECTOR phi, VECTOR psi)
     MATRIX coords = backbone(s, n, phi, psi);
     type rama;
     rama_energy_assembly(phi, psi, &rama);
-    type hydro=hydrophobic_energy(s, n, coords);
+    type hydro;
+    hydrophobic_energy_assembly(s, n, coords, &hydro);
     type elec = electrostatic_energy(s, n, coords);
     type pack = packing_energy(s, n, coords);
-    return (rama * uno) +(hydro * zeroPunto5) +(elec * zeroPunto2) + (pack * zeroPunto3);
+    return (rama * uno) + (hydro * zeroPunto5) + (elec * zeroPunto2) + (pack * zeroPunto3);
 }
 
 void pst(params *input)
@@ -526,7 +489,6 @@ void pst(params *input)
     type T = input->to;
 
     int t = 0;
-  
 
     while (T > 0)
     {
@@ -750,11 +712,11 @@ int main(int argc, char **argv)
     // Predizione struttura terziaria
     //
 
-    type startTime=omp_get_wtime();
+    type startTime = omp_get_wtime();
     pst(input);
-    type  endTime=omp_get_wtime();
+    type endTime = omp_get_wtime();
 
-    time = endTime-startTime;
+    time = endTime - startTime;
 
     if (!input->silent)
         printf("PST time = %.3f secs\n", time);
@@ -764,9 +726,9 @@ int main(int argc, char **argv)
     //
     // Salva il risultato
     //
-    sprintf(fname_phi, "out64_%d_%d_phi.ds2", input->N, input->sd);
+    sprintf(fname_phi, "out64_omp_%d_%d_phi.ds2", input->N, input->sd);
     save_out(fname_phi, input->phi, input->N);
-    sprintf(fname_psi, "out64_%d_%d_psi.ds2", input->N, input->sd);
+    sprintf(fname_psi, "out64_omp_%d_%d_psi.ds2", input->N, input->sd);
     save_out(fname_psi, input->psi, input->N);
     if (input->display)
     {
