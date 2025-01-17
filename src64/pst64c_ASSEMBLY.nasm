@@ -195,72 +195,71 @@ done:
 
 global hydrophobic_energy_assembly
 hydrophobic_energy_assembly:
-    push    rbp            
+    push    rbp
     mov     rbp, rsp
-    pushaq                 
+    pushaq
 
-
-    
     vxorpd xmm0, xmm0, xmm0   
-    
+
     xor r8, r8                
 outer_loop_hydro:
-    cmp r8, rsi                
-    jge done_hydro
-    
+    cmp r8, rsi               
+    jge done_hydro            
+
     mov r9, r8
     imul r9, 9
     add r9, 3
-    
+
     vmovupd ymm1, [rdx + r9*8]  
-    
+
     mov r10, r8
-    inc r10                    
-    
+    inc r10                  
+
 inner_loop_hydro:
-    cmp r10, rsi               
-    jge outer_loop_end_hydro
-    
+    cmp r10, rsi              
+    jge outer_loop_end_hydro  
+
     mov r11, r10
     imul r11, 9
     add r11, 3
-    
+
     vmovupd ymm2, [rdx + r11*8] 
-    
-    vsubpd ymm3, ymm2, ymm1     
-    vmulpd ymm3, ymm3, ymm3     
-    vhaddpd ymm3, ymm3, ymm3    
-    vhaddpd ymm3, ymm3, ymm3    
-    vsqrtpd ymm3, ymm3          
+
+    vsubpd ymm3, ymm2, ymm1   
+    vmulpd ymm3, ymm3, ymm3   
+    vhaddpd ymm3, ymm3, ymm3  
+    vhaddpd ymm3, ymm3, ymm3  
+
+    vsqrtpd ymm3, ymm3        
 
     vmovsd xmm4, [rel ten]
     vucomisd xmm3, xmm4
-    jae skip_update_hydro            
-    
+    jae skip_update_hydro     
+
     movzx r12, byte [rdi + r8]  
     sub r12, 65                 
     movzx r13, byte [rdi + r10] 
     sub r13, 65                 
-    
+
     vmovsd xmm4, [rel hydrophobicity + r12*8]
     vmovsd xmm5, [rel hydrophobicity + r13*8]
-    
-    vmulsd xmm4, xmm4, xmm5     
-    vdivsd xmm4, xmm4, xmm3     
-    vaddsd xmm0, xmm0, xmm4     
-    
+
+    vmulsd xmm4, xmm4, xmm5    
+    vdivsd xmm4, xmm4, xmm3    
+    vaddsd xmm0, xmm0, xmm4    
+
 skip_update_hydro:
     inc r10
     jmp inner_loop_hydro
-    
+
 outer_loop_end_hydro:
     inc r8
-    jmp outer_loop_end_hydro
-    
+    jmp outer_loop_hydro
+
 done_hydro:
-    vmovsd [rcx], xmm0          
-    
-    popaq                       
+    vmovsd [rcx], xmm0         
+
+    popaq
     mov rsp, rbp
     pop rbp
     ret
