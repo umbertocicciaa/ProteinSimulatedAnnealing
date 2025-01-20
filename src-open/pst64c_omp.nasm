@@ -140,7 +140,7 @@ inner_loop_hydro:
 
     vsqrtpd ymm3, ymm3        
 
-    vmovsd xmm4, [rel ten]
+    vmovsd xmm4, [ten]
     vucomisd xmm3, xmm4
     jae skip_update_hydro     
 
@@ -149,8 +149,8 @@ inner_loop_hydro:
     movzx r13, byte [rdi + r10] 
     sub r13, 65                 
 
-    vmovsd xmm4, [rel hydrophobicity + r12*8]
-    vmovsd xmm5, [rel hydrophobicity + r13*8]
+    vmovsd xmm4, [hydrophobicity + r12*8]
+    vmovsd xmm5, [hydrophobicity + r13*8]
 
     vmulsd xmm4, xmm4, xmm5    
     vdivsd xmm4, xmm4, xmm3    
