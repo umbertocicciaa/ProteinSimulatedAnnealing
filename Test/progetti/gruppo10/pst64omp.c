@@ -730,9 +730,9 @@ int main(int argc, char **argv)
     //
     // Salva il risultato
     //
-    sprintf(fname_phi, "out64_omp_%d_%d_phi.ds2", input->N, input->sd);
+    sprintf(fname_phi, "out64_%d_%d_%.3f_%.3f_%.3f_phi.ds2", input->N, input->sd, input->to, input->alpha, input->k);
     save_out(fname_phi, input->phi, input->N);
-    sprintf(fname_psi, "out64_omp_%d_%d_psi.ds2", input->N, input->sd);
+    sprintf(fname_psi, "out64_%d_%d_%.3f_%.3f_%.3f_psi.ds2", input->N, input->sd, input->to, input->alpha, input->k);
     save_out(fname_psi, input->psi, input->N);
     if (input->display)
     {
