@@ -67,7 +67,4 @@ Where:
 3. Performance comparison analysis
 4. Presentation slides (optional)
 
-## Note
-The project should be developed independently. Similar solutions between different groups will receive negative evaluations. Implementation details and file naming conventions will be provided separately before the submission deadline.
-
 [Progetto_Architetture_2024.pdf](https://github.com/user-attachments/files/18458602/Progetto_Architetture_2024.pdf)
