@@ -1,0 +1,378 @@
+#!/bin/bash
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+datasets=$(ls datasets/seq*.ds2);
+groups=$(ls -d progetti/gruppo*);
+tout=25;
+archs="32 64 32omp 64omp";
+
+RANDOM=5;
+
+tos='20.000';
+alphas='1.000'
+ks='1.000'
+
+ts=$(date +%H-%M-%S-%d-%m-%Y);
+testname=test/test.$ts.history;
+
+if [[ ! -d test ]]; then
+	mkdir test;
+fi;
+
+Scurr="";
+S="";
+
+compile(){
+	arch=$(printf "%s" $1 | sed s/omp//g);
+	omp=$(printf "%s" $1 | sed s/[^omp]//g);
+	if [[ ! -f sseutils$arch.nasm ]]; then cp ../../sseutils$arch.nasm .; fi;
+	nasm -f elf$arch sseutils$arch.nasm;
+	for f in $(ls *$1.nasm); do
+		nasm -f elf$arch $f;
+	done;
+	options="-Wl,-z,noexecstack -m$arch -msse -mavx -O0 -no-pie";
+	if [[ $omp == "omp" ]]; then
+		options="$options -fopenmp";
+	fi;
+	gcc $options *$1.o pst"$1".c -lm -o pst$1;
+}
+
+exec(){
+	arch=$(printf "%s" $3 | sed s/omp//g);
+	omp=$(printf "%s" $3 | sed s/[^omp]//g);
+	ds="../../"$4;
+	# COMPILA I SORGENTI
+	compile $3;
+	ec=$?;
+	# ESEGUE
+	START_TIME=$(date +%s%3N);
+	if [[ $ec -eq 0 ]]; then
+		timeout $2 ./pst$3 -seq $ds -to $5 -alpha $6 -k $7 -sd $8 -s > test.curr | head;
+		ee=$?;
+	else
+		ee=$ec;
+		printf "%i\n%i\n" -2 -2 > test.curr;
+	fi;
+	ELAPSED_TIME=$[ $(date +%s%3N) - $START_TIME ];
+	Scurr=$3";"$5";"$6";"$7";"$8;
+	printf "%s\n" $Scurr >> ./test/results.history
+	cat test.curr >> ./test/results.history
+	l=$(grep -c \.\* test.curr);
+	if [[ $ee -eq 0 ]]; then
+		if [[ ! $l -eq 2 ]]; then
+			Scurr=$Scurr";"-1";"-1";"-1";"$ee";"$l;
+		else
+			Scurr=$Scurr";"$ELAPSED_TIME;
+			while read line; do
+				Scurr=$Scurr";"$line;
+			done < test.curr;
+		fi;
+	else
+		Scurr=$Scurr";"-1";"-1";"-1";"$ee";"$l;
+	fi;
+	#printf "Total time = %s\n" $ELAPSED_TIME;
+}
+
+H="ID"
+seeds=();
+for dataset in $datasets; do
+	H=$H";Dataset";
+	for to in $tos; do
+		for alpha in $alphas; do
+			for k in $ks; do
+				for arch in $archs; do
+					seeds+=(3);#($RANDOM);
+					H=$H";ARCH;T0;Alpha;K;Seed;TotTime;CTime;Energy;MSEPhi;MSEPsi"
+				done;
+			done;
+		done;
+	done;
+done;
+
+
+printf "%s\n" $H >> $testname;
+for g in $groups; do
+	cd $g;
+	S=$g;
+	printf "Gruppo: %s\n" $g;
+	if [[ ! -d "test" ]]; then
+		mkdir test;
+	fi;
+	sd=0;
+	for dataset in $datasets; do
+		n=$(printf "$dataset" | sed s/datasets.seq_//g | sed s/\.ds2//g);
+		printf "  Dataset: %s (N: %s)\n" $dataset $n;
+		S=$S";"$dataset;
+		for to in $tos; do
+			printf "    T0: %s\n" $to;
+			for alpha in $alphas; do
+				printf "      Alpha: %s\n" $alpha;
+				for k in $ks; do
+					printf "        k: %s\n" $k;
+					for arch in $archs; do
+						seed=${seeds[$sd]};
+						sd=$(( $sd + 1 ));
+						printf "          $arch (seed: $seed)\n" $g;
+						exec $g $tout $arch $dataset $to $alpha $k $seed;
+						msephi=$(../../evaluate$arch ../../datasets/phi_"$n"_to"$to"_k"$k"_alpha"$alpha"_sd"$seed"_$arch.ds2 out"$arch"_"$n"_"$seed"_"$to"_"$alpha"_"$k"_phi.ds2);
+						#printf "Errors: %f\n" $msephi;
+						Scurr=$(LC_NUMERIC=C; printf "%s;%f" $Scurr $msephi);
+						msepsi=$(../../evaluate$arch ../../datasets/psi_"$n"_to"$to"_k"$k"_alpha"$alpha"_sd"$seed"_$arch.ds2 out"$arch"_"$n"_"$seed"_"$to"_"$alpha"_"$k"_psi.ds2);
+						#printf "Errors: %f\n" $msepsi;
+						Scurr=$(LC_NUMERIC=C; printf "%s;%f" $Scurr $msepsi);
+						printf "            %s\n" $Scurr;
+						S=$S";"$Scurr;
+					done;
+				done;
+			done;
+		done;
+	done;
+	cd ../..
+	printf "%s\n" $S >> $testname;
+done;

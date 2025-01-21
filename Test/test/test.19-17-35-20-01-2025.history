@@ -1,0 +1,2 @@
+ID;Dataset;ARCH;T0;Alpha;K;Seed;TotTime;CTime;Energy;MSEPhi;MSEPsi;ARCH;T0;Alpha;K;Seed;TotTime;CTime;Energy;MSEPhi;MSEPsi;ARCH;T0;Alpha;K;Seed;TotTime;CTime;Energy;MSEPhi;MSEPsi;ARCH;T0;Alpha;K;Seed;TotTime;CTime;Energy;MSEPhi;MSEPsi
+progetti/gruppo1;datasets/seq_256.ds2;32;20.000;1.000;1.000;3;5;0.000;5.000000;338.260925;401.341705;64;20.000;1.000;1.000;3;4;0.000;5.000000;392.836523;333.646747;32omp;20.000;1.000;1.000;3;-1;-1;-1;1;2;338.260925;401.341705;64omp;20.000;1.000;1.000;3;-1;-1;-1;1;2;392.836523;333.646747
