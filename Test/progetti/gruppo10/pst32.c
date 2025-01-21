@@ -686,10 +686,14 @@ int main(int argc, char **argv)
 	t = clock() - t;
 	time = ((float)t) / CLOCKS_PER_SEC;
 
-	if (!input->silent)
+	if (!input->silent){
 		printf("PST time = %.3f secs\n", time);
-	else
+		printf("Energy = %f\n", input->e);
+	}
+	else{
 		printf("%.3f\n", time);
+		printf("%f\n", input->e);
+	}
 
 	//
 	// Salva il risultato
