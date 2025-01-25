@@ -65,6 +65,5 @@ Where:
 1. Source code for all required implementations
 2. Technical documentation/report
 3. Performance comparison analysis
-4. Presentation slides (optional)
 
 [Progetto_Architetture_2024.pdf](https://github.com/user-attachments/files/18458602/Progetto_Architetture_2024.pdf)
